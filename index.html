@@ -14,7 +14,8 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: #eaecf4;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
       color: #2d3748;
     }
 
@@ -153,16 +154,26 @@
     /* ── Builder mode ──────────────────────────────────── */
 
     #mode-builder {
-      padding: 24px 20px 40px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow: hidden;
     }
 
     .builder-page {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
       max-width: 920px;
+      width: 100%;
       margin: 0 auto;
     }
 
     /* Restore card */
     .restore-card {
+      flex-shrink: 0;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
@@ -215,6 +226,8 @@
 
     /* Builder two-column layout */
     .builder-layout {
+      flex: 1;
+      min-height: 0;
       display: flex;
       gap: 16px;
     }
@@ -222,6 +235,7 @@
     .builder-main {
       flex: 1;
       min-width: 0;
+      min-height: 0;
       display: flex;
       flex-direction: column;
     }
@@ -229,6 +243,7 @@
     /* Compose window */
     .compose-window {
       flex: 1;
+      min-height: 0;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
@@ -293,6 +308,7 @@
 
     .body-area {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       padding: 14px 20px;
@@ -301,6 +317,7 @@
 
     .body-area textarea {
       flex: 1;
+      min-height: 0;
       width: 100%;
       border: none;
       outline: none;
@@ -308,7 +325,6 @@
       font-family: inherit;
       color: #2d3748;
       resize: none;
-      min-height: 160px;
       background: transparent;
       line-height: 1.6;
     }
@@ -373,9 +389,6 @@
       border-radius: 12px;
       box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
       overflow: hidden;
-      position: sticky;
-      top: 24px;
-      max-height: calc(100vh - 48px);
       display: flex;
       flex-direction: column;
     }
@@ -481,13 +494,13 @@
 
     /* Responsive */
     @media (max-width: 700px) {
-      .builder-layout { flex-direction: column; }
-      .vars-panel {
-        width: 100%;
-        position: static;
-        max-height: none;
-      }
+      body { height: auto; overflow: auto; }
+      #mode-builder { height: auto; overflow: visible; }
+      .builder-page { flex: none; }
+      .builder-layout { flex: none; flex-direction: column; }
+      .vars-panel { width: 100%; }
       .vars-body { max-height: 320px; }
+      .body-area textarea { min-height: 120px; }
     }
   </style>
 </head>

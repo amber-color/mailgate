@@ -730,6 +730,10 @@
       return str.replace(/[%&=#?]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
 
+    function encodeQueryValue(str) {
+      return str.replace(/[%&=#?+]|\r\n|\r|\n/g, c => encodeURIComponent(c));
+    }
+
     /* ── Redirect mode ───────────────────────────────────────── */
 
     function collectPlaceholders(text) {
@@ -959,15 +963,17 @@
       }
 
       const base = location.origin + location.pathname;
-      const qp = new URLSearchParams();
-      if (to)          qp.set('to',      to);
-      if (cc)          qp.set('cc',      cc);
-      if (bcc)         qp.set('bcc',     bcc);
-      if (subject)     qp.set('subject', subject);
-      if (body.trim()) qp.set('body',    body);
-      customParams.forEach(({ key, val }) => { if (key) qp.set(key, val); });
+      const parts = [];
+      if (to)          parts.push('to='      + encodeQueryValue(to));
+      if (cc)          parts.push('cc='      + encodeQueryValue(cc));
+      if (bcc)         parts.push('bcc='     + encodeQueryValue(bcc));
+      if (subject)     parts.push('subject=' + encodeQueryValue(subject));
+      if (body.trim()) parts.push('body='    + encodeQueryValue(body));
+      customParams.forEach(({ key, val }) => {
+        if (key) parts.push(encodeQueryValue(key) + '=' + encodeQueryValue(val));
+      });
 
-      urlEl.textContent = base + '?' + qp.toString();
+      urlEl.textContent = base + '?' + parts.join('&');
       urlEl.classList.remove('empty');
     }
 

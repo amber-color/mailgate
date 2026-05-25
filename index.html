@@ -831,7 +831,7 @@
       document.getElementById('mode-redirect').style.display = 'flex';
 
       window.location.href = mailtoUrl;
-      window.close();
+      setTimeout(() => window.close(), 500);
     }
 
     /* ── Builder mode ────────────────────────────────────────── */

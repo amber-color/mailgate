@@ -310,8 +310,12 @@
 
       document.getElementById('mailto-btn').href = mailtoUrl;
 
-      window.location.href = mailtoUrl;
-      window.close();
+      const hasParams = params.has('to') || params.has('cc') || params.has('bcc')
+        || params.has('subject') || params.has('body');
+      if (hasParams) {
+        window.location.href = mailtoUrl;
+        window.close();
+      }
     })();
   </script>
 </body>

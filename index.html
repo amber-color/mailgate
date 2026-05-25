@@ -474,6 +474,91 @@
 
     .token-val { color: #7a87a8; }
 
+    /* Custom params section */
+    .vars-section {
+      border-bottom: 1px solid #eaecf4;
+      padding-bottom: 10px;
+    }
+
+    .vars-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9aa5c4;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 16px 6px;
+    }
+
+    .custom-param-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 16px;
+    }
+
+    .custom-param-arrow { font-size: 11px; color: #b0b8d4; }
+
+    .custom-param-val {
+      flex: 1;
+      font-size: 11px;
+      color: #4c5f8e;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .custom-param-del {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: #b0b8d4;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0 2px;
+      line-height: 1;
+    }
+
+    .custom-param-del:hover { color: #e57373; }
+
+    .add-param-row {
+      display: flex;
+      gap: 5px;
+      padding: 6px 16px 4px;
+    }
+
+    .add-param-input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #d8dcea;
+      border-radius: 4px;
+      padding: 4px 7px;
+      font-size: 11px;
+      font-family: inherit;
+      color: #2d3748;
+      outline: none;
+      background: #fff;
+    }
+
+    .add-param-input:focus { border-color: #6b84cc; }
+    .add-param-input::placeholder { color: #c8d0e4; }
+
+    .add-param-btn {
+      flex-shrink: 0;
+      background: #6b84cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .add-param-btn:hover { background: #5470b8; }
+
     /* Responsive */
     @media (max-width: 700px) {
       body { height: auto; overflow: auto; }
@@ -555,8 +640,19 @@
 
         <!-- Right column -->
         <div class="vars-panel">
-          <div class="vars-panel-header">日付プレースホルダー</div>
-          <div class="vars-body" id="vars-body"></div>
+          <div class="vars-panel-header">変数パネル</div>
+          <div class="vars-body">
+            <div class="vars-section">
+              <div class="vars-section-label">カスタム変数</div>
+              <div id="custom-params-list"></div>
+              <div class="add-param-row">
+                <input id="param-key" class="add-param-input" placeholder="変数名" autocomplete="off" spellcheck="false">
+                <input id="param-val" class="add-param-input" placeholder="値" autocomplete="off" spellcheck="false">
+                <button class="add-param-btn" onclick="addCustomParam()">追加</button>
+              </div>
+            </div>
+            <div id="vars-date-body"></div>
+          </div>
         </div>
 
       </div>
@@ -614,7 +710,8 @@
       return {
         today,
         yesterday,
-        tomorrow: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+        tomorrow:  new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+        lastmonth: new Date(today.getFullYear(), today.getMonth() - 1, 1),
         nextmonth: new Date(today.getFullYear(), today.getMonth() + 1, 1),
       };
     }
@@ -624,7 +721,8 @@
       return text
         .replace(/\[today\(([^)]+)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
         .replace(/\[yesterday\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
-        .replace(/\[tomorrow\(([^)]+)\)\]/g,    (_, fmt) => formatDate(dm.tomorrow,  fmt))
+        .replace(/\[tomorrow\(([^)]+)\)\]/g,   (_, fmt) => formatDate(dm.tomorrow,  fmt))
+        .replace(/\[lastmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.lastmonth, fmt))
         .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt));
     }
 
@@ -636,7 +734,7 @@
 
     function collectPlaceholders(text) {
       const found = [];
-      const pattern = /\[(today|yesterday|tomorrow|nextmonth)\(([^)]+)\)\]/g;
+      const pattern = /\[(today|yesterday|tomorrow|lastmonth|nextmonth)\(([^)]+)\)\]/g;
       let match;
       while ((match = pattern.exec(text)) !== null) {
         found.push({ placeholder: match[0], keyword: match[1], fmt: match[2] });
@@ -644,19 +742,27 @@
       return found;
     }
 
-    function buildDebugInfo(rawParams) {
+    function buildDebugInfo(rawParams, urlParams) {
       const allText = Object.values(rawParams).join('\n');
-      const found = collectPlaceholders(allText);
+      const dateFound = collectPlaceholders(allText);
+      const paramFound = [...allText.matchAll(/\[param:([^\]]+)\]/g)]
+        .map(m => ({ placeholder: m[0], key: m[1] }));
       const debugEl = document.getElementById('debug-output');
 
-      if (found.length === 0) {
-        debugEl.innerHTML = '<p class="debug-empty">日付プレースホルダーは使用されていません</p>';
+      if (dateFound.length === 0 && paramFound.length === 0) {
+        debugEl.innerHTML = '<p class="debug-empty">プレースホルダーは使用されていません</p>';
         return;
       }
 
       const dm = getDateMap();
-      const rows = found.map(({ placeholder, keyword, fmt }) => {
+      const dateRows = dateFound.map(({ placeholder, keyword, fmt }) => {
         const resolved = formatDate(dm[keyword], fmt);
+        const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
+      }).join('');
+
+      const paramRows = paramFound.map(({ placeholder, key }) => {
+        const resolved = urlParams.get(key) ?? '(未設定)';
         const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
       }).join('');
@@ -664,8 +770,12 @@
       debugEl.innerHTML = `
         <table class="debug-table">
           <thead><tr><th>プレースホルダー</th><th></th><th>置換後の値</th></tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody>${dateRows}${paramRows}</tbody>
         </table>`;
+    }
+
+    function replaceParamPlaceholders(text, params) {
+      return text.replace(/\[param:([^\]]+)\]/g, (_, key) => params.get(key) ?? '');
     }
 
     function runRedirectMode(params) {
@@ -677,13 +787,14 @@
         body:    params.get('body')    ?? '',
       };
 
-      buildDebugInfo(rawParams);
+      buildDebugInfo(rawParams, params);
 
-      const to      = replaceDatePlaceholders(rawParams.to);
-      const cc      = replaceDatePlaceholders(rawParams.cc);
-      const bcc     = replaceDatePlaceholders(rawParams.bcc);
-      const subject = replaceDatePlaceholders(rawParams.subject);
-      const body    = replaceDatePlaceholders(rawParams.body);
+      const applyAll = str => replaceParamPlaceholders(replaceDatePlaceholders(str), params);
+      const to      = applyAll(rawParams.to);
+      const cc      = applyAll(rawParams.cc);
+      const bcc     = applyAll(rawParams.bcc);
+      const subject = applyAll(rawParams.subject);
+      const body    = applyAll(rawParams.body);
 
       const queryParts = [];
       if (cc)      queryParts.push('cc='      + encodeSpecialChars(cc));
@@ -720,6 +831,11 @@
         examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
       },
       {
+        keyword: 'lastmonth',
+        desc: '先月1日',
+        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
+      },
+      {
         keyword: 'nextmonth',
         desc: '来月1日',
         examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
@@ -739,7 +855,8 @@
 
     function buildVarsPanel() {
       const dm = getDateMap();
-      const container = document.getElementById('vars-body');
+      const container = document.getElementById('vars-date-body');
+      renderCustomParams();
 
       const groupsHtml = VAR_GROUPS.map(({ keyword, desc, examples }) => {
         const chipsHtml = examples.map(fmt => {
@@ -768,6 +885,45 @@
     }
 
     let lastFocused = null;
+    let customParams = [];
+
+    function addCustomParam() {
+      const key = document.getElementById('param-key').value.trim();
+      const val = document.getElementById('param-val').value;
+      if (!key) return;
+      customParams = customParams.filter(p => p.key !== key);
+      customParams.push({ key, val });
+      document.getElementById('param-key').value = '';
+      document.getElementById('param-val').value = '';
+      renderCustomParams();
+      updateUrl();
+    }
+
+    function removeCustomParam(i) {
+      customParams.splice(i, 1);
+      renderCustomParams();
+      updateUrl();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function renderCustomParams() {
+      const list = document.getElementById('custom-params-list');
+      if (!list) return;
+      list.innerHTML = customParams.map((p, i) => `
+        <div class="custom-param-item">
+          <span class="var-chip" onclick="insertPlaceholder('[param:${escHtml(p.key)}]')">[param:${escHtml(p.key)}]</span>
+          <span class="custom-param-arrow">→</span>
+          <span class="custom-param-val">${p.val ? escHtml(p.val) : '<span style="color:#c8d0e4">空</span>'}</span>
+          <button class="custom-param-del" onclick="removeCustomParam(${i})">×</button>
+        </div>`).join('');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.activeElement.id === 'param-val') addCustomParam();
+    });
 
     function trackFocus() {
       ['f-to', 'f-cc', 'f-bcc', 'f-subject', 'f-body'].forEach(id => {
@@ -809,6 +965,7 @@
       if (bcc)         qp.set('bcc',     bcc);
       if (subject)     qp.set('subject', subject);
       if (body.trim()) qp.set('body',    body);
+      customParams.forEach(({ key, val }) => { if (key) qp.set(key, val); });
 
       urlEl.textContent = base + '?' + qp.toString();
       urlEl.classList.remove('empty');
@@ -854,6 +1011,10 @@
           bcc     = p.get('bcc')     ?? '';
           subject = p.get('subject') ?? '';
           body    = p.get('body')    ?? '';
+          const reserved = new Set(['to','cc','bcc','subject','body']);
+          customParams = [];
+          p.forEach((v, k) => { if (!reserved.has(k)) customParams.push({ key: k, val: v }); });
+          renderCustomParams();
         } catch (_) {
           return;
         }

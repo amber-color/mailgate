@@ -41,6 +41,7 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 | `today` | 今日 |
 | `yesterday` | 前日（月曜の場合は金曜） |
 | `tomorrow` | 翌日 |
+| `lastmonth` | 先月1日 |
 | `nextmonth` | 来月1日 |
 
 ### フォーマットトークン
@@ -71,8 +72,32 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 [today(yyyy年m月d日(aaa))]  → 2025年5月25日(日)
 [yesterday(mm/dd)]          → 05/24
 [tomorrow(mm/dd)]           → 05/26
+[lastmonth(yyyy年m月)]      → 2025年4月
 [nextmonth(yyyy年m月)]      → 2025年6月
 ```
+
+---
+
+## カスタム変数 `[param:xxx]`
+
+URLのクエリパラメータに任意のキーと値を追加すると、`[param:キー名]` という形式で件名・本文に埋め込めます。
+
+```
+[param:name]    → URLに &name=田中様 を追加すると「田中様」に置換
+[param:project] → URLに &project=ECサイト を追加すると「ECサイト」に置換
+```
+
+テンプレートを1つ作り、宛名や案件名だけ変えて使い回す用途に便利です。
+
+```
+https://mailgate.pages.dev/?to=boss@example.com
+  &subject=[today(mm%2Fdd)]%20[param:project]打ち合わせ
+  &body=[param:name]%0Aいつもお世話になっております。
+  &name=田中様
+  &project=ECサイト
+```
+
+URLジェネレーター（パラメータなしでアクセス）の変数パネルからカスタム変数を追加すると、URLに自動で付加されます。
 
 ---
 

@@ -171,50 +171,31 @@
       margin: 0 auto;
     }
 
-    /* Restore card */
-    .restore-card {
-      flex-shrink: 0;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
-      padding: 18px 20px;
-      margin-bottom: 16px;
-    }
-
-    .restore-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #4c5f8e;
-      margin-bottom: 12px;
-    }
-
-    .restore-row {
-      display: flex;
-      gap: 10px;
-    }
-
     .restore-input {
       flex: 1;
+      min-width: 0;
       border: 1px solid #d8dcea;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 13px;
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 12px;
       font-family: inherit;
       color: #2d3748;
       outline: none;
       transition: border-color 0.15s;
+      background: #fff;
     }
 
     .restore-input::placeholder { color: #b0b8d4; }
     .restore-input:focus { border-color: #6b84cc; }
 
     .restore-btn {
+      flex-shrink: 0;
       background: #6b84cc;
       color: #fff;
       border: none;
-      border-radius: 6px;
-      padding: 8px 18px;
-      font-size: 13px;
+      border-radius: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
       font-weight: 500;
       font-family: inherit;
       cursor: pointer;
@@ -253,11 +234,12 @@
     }
 
     .compose-header {
-      padding: 14px 20px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       border-bottom: 1px solid #eaecf4;
+      flex-shrink: 0;
     }
 
     .dot {
@@ -531,16 +513,6 @@
   <div id="mode-builder" style="display:none">
     <div class="builder-page">
 
-      <!-- Restore -->
-      <div class="restore-card">
-        <div class="restore-title">メールリンクから復元</div>
-        <div class="restore-row">
-          <input id="restore-input" class="restore-input" type="text"
-            placeholder="mailtoリンクをここに貼り付けて「復元」をクリック">
-          <button class="restore-btn" onclick="restoreFromLink()">復元</button>
-        </div>
-      </div>
-
       <div class="builder-layout">
 
         <!-- Main column -->
@@ -551,6 +523,9 @@
               <span class="dot dot-yellow"></span>
               <span class="dot dot-green"></span>
               <span class="compose-title">新規メール</span>
+              <input id="restore-input" class="restore-input" type="text"
+                placeholder="mailtoリンクを貼り付けて復元" autocomplete="off" spellcheck="false">
+              <button class="restore-btn" onclick="restoreFromLink()">復元</button>
             </div>
             <div class="field-row">
               <label for="f-to">To</label>

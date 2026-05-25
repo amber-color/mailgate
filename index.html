@@ -614,7 +614,7 @@
       return {
         today,
         yesterday,
-        thismonth: new Date(today.getFullYear(), today.getMonth(), 1),
+        tomorrow: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
         nextmonth: new Date(today.getFullYear(), today.getMonth() + 1, 1),
       };
     }
@@ -624,7 +624,7 @@
       return text
         .replace(/\[today\(([^)]+)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
         .replace(/\[yesterday\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
-        .replace(/\[thismonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.thismonth, fmt))
+        .replace(/\[tomorrow\(([^)]+)\)\]/g,    (_, fmt) => formatDate(dm.tomorrow,  fmt))
         .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt));
     }
 
@@ -636,7 +636,7 @@
 
     function collectPlaceholders(text) {
       const found = [];
-      const pattern = /\[(today|yesterday|thismonth|nextmonth)\(([^)]+)\)\]/g;
+      const pattern = /\[(today|yesterday|tomorrow|nextmonth)\(([^)]+)\)\]/g;
       let match;
       while ((match = pattern.exec(text)) !== null) {
         found.push({ placeholder: match[0], keyword: match[1], fmt: match[2] });
@@ -715,9 +715,9 @@
         examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
       },
       {
-        keyword: 'thismonth',
-        desc: '今月1日',
-        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
+        keyword: 'tomorrow',
+        desc: '翌日',
+        examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
       },
       {
         keyword: 'nextmonth',

@@ -40,7 +40,7 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 |-----------|--------|
 | `today` | 今日 |
 | `yesterday` | 前日（月曜の場合は金曜） |
-| `thismonth` | 今月1日 |
+| `tomorrow` | 翌日 |
 | `nextmonth` | 来月1日 |
 
 ### フォーマットトークン
@@ -70,7 +70,7 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 [today(yyyy/mm/dd)]         → 2025/05/25
 [today(yyyy年m月d日(aaa))]  → 2025年5月25日(日)
 [yesterday(mm/dd)]          → 05/24
-[thismonth(yyyy-mm)]        → 2025-05
+[tomorrow(mm/dd)]           → 05/26
 [nextmonth(yyyy年m月)]      → 2025年6月
 ```
 

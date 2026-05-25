@@ -700,17 +700,15 @@
         .replace(/S/g,    S);
     }
 
-    function getDateMap() {
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      return {
-        today,
-        yesterday,
-        tomorrow:  new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
-        lastmonth: new Date(today.getFullYear(), today.getMonth() - 1, 1),
-        nextmonth: new Date(today.getFullYear(), today.getMonth() + 1, 1),
-      };
+    function getDateOffset(n) {
+      const d = new Date();
+      d.setDate(d.getDate() + n);
+      return d;
+    }
+
+    function getMonthOffset(n) {
+      const t = new Date();
+      return new Date(t.getFullYear(), t.getMonth() + n, 1);
     }
 
     function getWorkday(today, offset) {
@@ -729,15 +727,14 @@
     }
 
     function replaceDatePlaceholders(text) {
-      const dm = getDateMap();
+      const today = new Date();
       return text
-        .replace(/\[today\((.+?)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
-        .replace(/\[yesterday\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
-        .replace(/\[tomorrow\((.+?)\)\]/g,   (_, fmt) => formatDate(dm.tomorrow,  fmt))
-        .replace(/\[lastmonth\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.lastmonth, fmt))
-        .replace(/\[nextmonth\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt))
+        .replace(/\[date\(([+-]?\d+),\s*(.+?)\)\]/g,
+          (_, n, fmt) => formatDate(getDateOffset(parseInt(n)), fmt))
+        .replace(/\[month\(([+-]?\d+),\s*(.+?)\)\]/g,
+          (_, n, fmt) => formatDate(getMonthOffset(parseInt(n)), fmt))
         .replace(/\[workday\(([+-]?\d+),\s*(.+?)\)\]/g,
-          (_, n, fmt) => formatDate(getWorkday(dm.today, parseInt(n)), fmt));
+          (_, n, fmt) => formatDate(getWorkday(today, parseInt(n)), fmt));
     }
 
     function encodeSpecialChars(str) {
@@ -752,10 +749,14 @@
 
     function collectPlaceholders(text) {
       const found = [];
-      const pattern = /\[(today|yesterday|tomorrow|lastmonth|nextmonth)\((.+?)\)\]/g;
       let match;
-      while ((match = pattern.exec(text)) !== null) {
-        found.push({ type: 'date', placeholder: match[0], keyword: match[1], fmt: match[2] });
+      const datePattern = /\[date\(([+-]?\d+),\s*(.+?)\)\]/g;
+      while ((match = datePattern.exec(text)) !== null) {
+        found.push({ type: 'date', placeholder: match[0], offset: parseInt(match[1]), fmt: match[2] });
+      }
+      const monthPattern = /\[month\(([+-]?\d+),\s*(.+?)\)\]/g;
+      while ((match = monthPattern.exec(text)) !== null) {
+        found.push({ type: 'month', placeholder: match[0], offset: parseInt(match[1]), fmt: match[2] });
       }
       const wdPattern = /\[workday\(([+-]?\d+),\s*(.+?)\)\]/g;
       while ((match = wdPattern.exec(text)) !== null) {
@@ -776,9 +777,12 @@
         return;
       }
 
-      const dm = getDateMap();
-      const dateRows = dateFound.map(({ type, placeholder, keyword, fmt, offset }) => {
-        const date = type === 'workday' ? getWorkday(dm.today, offset) : dm[keyword];
+      const today = new Date();
+      const dateRows = dateFound.map(({ type, placeholder, offset, fmt }) => {
+        let date;
+        if (type === 'workday') date = getWorkday(today, offset);
+        else if (type === 'month') date = getMonthOffset(offset);
+        else date = getDateOffset(offset);
         const resolved = formatDate(date, fmt);
         const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
@@ -837,32 +841,23 @@
 
     /* ── Builder mode ────────────────────────────────────────── */
 
-    const VAR_GROUPS = [
-      {
-        keyword: 'today',
-        desc: '今日の日付',
-        examples: ['yyyy/mm/dd', 'yyyy年m月d日', 'yyyy年m月d日(aaa)', 'mm/dd(aaa)', 'aaaa', 'ddd'],
-      },
-      {
-        keyword: 'yesterday',
-        desc: '前日（月曜の場合は金曜）',
-        examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
-      },
-      {
-        keyword: 'tomorrow',
-        desc: '翌日',
-        examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
-      },
-      {
-        keyword: 'lastmonth',
-        desc: '先月1日',
-        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
-      },
-      {
-        keyword: 'nextmonth',
-        desc: '来月1日',
-        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
-      },
+    const DATE_EXAMPLES = [
+      { offset: 0,  fmt: 'yyyy/mm/dd' },
+      { offset: 0,  fmt: 'yyyy年m月d日(aaa)' },
+      { offset: -1, fmt: 'yyyy/mm/dd' },
+      { offset: -1, fmt: 'm月d日(aaa)' },
+      { offset: +1, fmt: 'yyyy/mm/dd' },
+      { offset: +1, fmt: 'm月d日(aaa)' },
+      { offset: -7, fmt: 'yyyy/mm/dd' },
+      { offset: +7, fmt: 'yyyy/mm/dd' },
+    ];
+
+    const MONTH_EXAMPLES = [
+      { offset:  0, fmt: 'yyyy年m月' },
+      { offset: -1, fmt: 'yyyy年m月' },
+      { offset: +1, fmt: 'yyyy年m月' },
+      { offset:  0, fmt: 'yyyy/mm' },
+      { offset: -1, fmt: 'yyyymm' },
     ];
 
     const TOKENS = [
@@ -877,9 +872,33 @@
     ];
 
     function buildVarsPanel() {
-      const dm = getDateMap();
+      const today = new Date();
       const container = document.getElementById('vars-date-body');
       renderCustomParams();
+
+      function makeChip(tag, preview) {
+        return `<span class="var-chip" onclick="insertPlaceholder('${tag.replace(/'/g, "\\'")}')" title="${tag}">${tag}<span class="var-chip-preview">${preview}</span></span>`;
+      }
+
+      function sign(n) { return n > 0 ? '+' + n : String(n); }
+
+      const dateHtml = `<div class="var-group">
+        <div class="var-keyword">date</div>
+        <div class="var-desc">N日後（負で前、0=今日）</div>
+        <div class="var-chips">${DATE_EXAMPLES.map(({ offset, fmt }) => {
+          const tag = `[date(${sign(offset)}, ${fmt})]`;
+          return makeChip(tag, formatDate(getDateOffset(offset), fmt));
+        }).join('')}</div>
+      </div>`;
+
+      const monthHtml = `<div class="var-group">
+        <div class="var-keyword">month</div>
+        <div class="var-desc">Nヶ月後の1日（負で前、0=今月）</div>
+        <div class="var-chips">${MONTH_EXAMPLES.map(({ offset, fmt }) => {
+          const tag = `[month(${sign(offset)}, ${fmt})]`;
+          return makeChip(tag, formatDate(getMonthOffset(offset), fmt));
+        }).join('')}</div>
+      </div>`;
 
       const workdayExamples = [
         { offset: -1, fmt: 'yyyy/mm/dd' },
@@ -891,26 +910,12 @@
         <div class="var-keyword">workday</div>
         <div class="var-desc">営業日（土日スキップ）</div>
         <div class="var-chips">${workdayExamples.map(({ offset, fmt }) => {
-          const tag = `[workday(${offset > 0 ? '+' + offset : offset}, ${fmt})]`;
-          const preview = formatDate(getWorkday(dm.today, offset), fmt);
-          return `<span class="var-chip" onclick="insertPlaceholder('${tag.replace(/'/g, "\\'")}')" title="${tag}">${tag}<span class="var-chip-preview">${preview}</span></span>`;
+          const tag = `[workday(${sign(offset)}, ${fmt})]`;
+          return makeChip(tag, formatDate(getWorkday(today, offset), fmt));
         }).join('')}</div>
       </div>`;
 
-      const groupsHtml = workdayHtml + VAR_GROUPS.map(({ keyword, desc, examples }) => {
-        const chipsHtml = examples.map(fmt => {
-          const preview = formatDate(dm[keyword], fmt);
-          const tag = `[${keyword}(${fmt})]`;
-          return `<span class="var-chip" onclick="insertPlaceholder('${tag.replace(/'/g, "\\'")}')" title="${tag}">
-            ${tag}<span class="var-chip-preview">${preview}</span>
-          </span>`;
-        }).join('');
-        return `<div class="var-group">
-          <div class="var-keyword">${keyword}</div>
-          <div class="var-desc">${desc}</div>
-          <div class="var-chips">${chipsHtml}</div>
-        </div>`;
-      }).join('');
+      const groupsHtml = dateHtml + monthHtml + workdayHtml;
 
       const tokenRowsHtml = TOKENS.map(([k, v]) =>
         `<span class="token-key">${k}</span><span class="token-val">${v}</span>`

@@ -33,17 +33,14 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 ### 記法
 
 ```
-[キーワード(フォーマット)]
+[キーワード(N, フォーマット)]
 ```
 
 | キーワード | 基準日 |
 |-----------|--------|
+| `date(N, format)` | N日後（負で前、0=今日） |
+| `month(N, format)` | Nヶ月後の1日（負で前、0=今月） |
 | `workday(N, format)` | N営業日後（負で前、土日スキップ） |
-| `today` | 今日 |
-| `yesterday` | 前日 |
-| `tomorrow` | 翌日 |
-| `lastmonth` | 先月1日 |
-| `nextmonth` | 来月1日 |
 
 ### フォーマットトークン
 
@@ -69,15 +66,18 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 ### 例
 
 ```
-[today(yyyy/mm/dd)]         → 2025/05/25
-[today(yyyy年m月d日(aaa))]  → 2025年5月25日(日)
-[yesterday(mm/dd)]          → 05/24
-[workday(-1, yyyy/mm/dd)]   → 前営業日
-[workday(+1, m月d日(aaa))]  → 翌営業日（曜日付き）
-[workday(0, yyyy/mm/dd)]    → 今日（土日なら直前の金曜）
-[tomorrow(mm/dd)]           → 05/26
-[lastmonth(yyyy年m月)]      → 2025年4月
-[nextmonth(yyyy年m月)]      → 2025年6月
+[date(0, yyyy/mm/dd)]          → 今日
+[date(-1, yyyy/mm/dd)]         → 昨日
+[date(+1, mm/dd)]              → 明日
+[date(-7, yyyy/mm/dd)]         → 1週間前
+[date(0, yyyy年m月d日(aaa))]   → 今日（曜日付き）
+[date(-1, m月d日(aaa))]        → 昨日（曜日付き）
+[month(0, yyyy年m月)]          → 今月1日
+[month(-1, yyyy年m月)]         → 先月1日
+[month(+1, yyyy年m月)]         → 来月1日
+[workday(-1, yyyy/mm/dd)]      → 前営業日
+[workday(+1, m月d日(aaa))]     → 翌営業日（曜日付き）
+[workday(0, yyyy/mm/dd)]       → 今日（土日なら直前の金曜）
 ```
 
 ---
@@ -94,9 +94,9 @@ URLのクエリパラメータに任意のキーと値を追加すると、`[par
 テンプレートを1つ作り、宛名や案件名だけ変えて使い回す用途に便利です。
 
 ```
-https://mailgate.pages.dev/?to=boss@example.com&subject=[today(mm/dd)] [param:project]打ち合わせ&body=[param:name]%0Aいつもお世話になっております。&name=田中様&project=ECサイト
+https://mailgate.pages.dev/?to=boss@example.com&subject=[date(0, mm/dd)] [param:project]打ち合わせ&body=[param:name]%0Aいつもお世話になっております。&name=田中様&project=ECサイト
 ```
-[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Btoday(mm/dd)%5D%20%5Bparam:project%5D打ち合わせ&body=%5Bparam:name%5D%0Aいつもお世話になっております。&name=田中様&project=ECサイト)
+[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Bdate(0,%20mm/dd)%5D%20%5Bparam:project%5D打ち合わせ&body=%5Bparam:name%5D%0Aいつもお世話になっております。&name=田中様&project=ECサイト)
 
 URLジェネレーター（パラメータなしでアクセス）の変数パネルからカスタム変数を追加すると、URLに自動で付加されます。
 
@@ -114,20 +114,20 @@ https://mailgate.pages.dev/?to=example@example.com&subject=ご連絡&body=お世
 件名に今日の日付を入れる：
 
 ```
-https://mailgate.pages.dev/?to=boss@example.com&subject=[today(yyyy/mm/dd)] 日報&body=[today(m月d日(aaa))]の作業報告です。
+https://mailgate.pages.dev/?to=boss@example.com&subject=[date(0, yyyy/mm/dd)] 日報&body=[date(0, m月d日(aaa))]の作業報告です。
 ```
-[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Btoday(yyyy/mm/dd)%5D%20日報&body=%5Btoday(m月d日(aaa))%5Dの作業報告です。)
+[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Bdate(0,%20yyyy/mm/dd)%5D%20日報&body=%5Bdate(0,%20m月d日(aaa))%5Dの作業報告です。)
 
-前営業日を本文に入れる：
+昨日の日付を本文に入れる：
 
 ```
-https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=[yesterday(yyyy年m月d日(aaa))]の会議議事録を添付します。
+https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=[date(-1, yyyy年m月d日(aaa))]の会議議事録を添付します。
 ```
-[→ 試す](https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=%5Byesterday(yyyy年m月d日(aaa))%5Dの会議議事録を添付します。)
+[→ 試す](https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=%5Bdate(-1,%20yyyy年m月d日(aaa))%5Dの会議議事録を添付します。)
 
 先月・来月を件名に使う：
 
 ```
-https://mailgate.pages.dev/?to=accounting@example.com&subject=[lastmonth(yyyy年m月)]請求書について&body=[nextmonth(m月)]分の請求書をご確認ください。
+https://mailgate.pages.dev/?to=accounting@example.com&subject=[month(-1, yyyy年m月)]請求書について&body=[month(+1, m月)]分の請求書をご確認ください。
 ```
-[→ 試す](https://mailgate.pages.dev/?to=accounting@example.com&subject=%5Blastmonth(yyyy年m月)%5D請求書について&body=%5Bnextmonth(m月)%5D分の請求書をご確認ください。)
+[→ 試す](https://mailgate.pages.dev/?to=accounting@example.com&subject=%5Bmonth(-1,%20yyyy年m月)%5D請求書について&body=%5Bmonth(+1,%20m月)%5D分の請求書をご確認ください。)

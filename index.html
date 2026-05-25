@@ -702,11 +702,7 @@
     function getDateMap() {
       const today = new Date();
       const yesterday = new Date(today);
-      if (today.getDay() === 1) {
-        yesterday.setDate(today.getDate() - 3);
-      } else {
-        yesterday.setDate(today.getDate() - 1);
-      }
+      yesterday.setDate(today.getDate() - 1);
       return {
         today,
         yesterday,

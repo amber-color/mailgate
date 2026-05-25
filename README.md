@@ -38,6 +38,7 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 
 | キーワード | 基準日 |
 |-----------|--------|
+| `workday(N, format)` | N営業日後（負で前、土日スキップ） |
 | `today` | 今日 |
 | `yesterday` | 前日 |
 | `tomorrow` | 翌日 |
@@ -71,6 +72,9 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 [today(yyyy/mm/dd)]         → 2025/05/25
 [today(yyyy年m月d日(aaa))]  → 2025年5月25日(日)
 [yesterday(mm/dd)]          → 05/24
+[workday(-1, yyyy/mm/dd)]   → 前営業日
+[workday(+1, m月d日(aaa))] → 翌営業日（曜日付き）
+[workday(0, yyyy/mm/dd)]   → 今日（土日なら直前の金曜）
 [tomorrow(mm/dd)]           → 05/26
 [lastmonth(yyyy年m月)]      → 2025年4月
 [nextmonth(yyyy年m月)]      → 2025年6月

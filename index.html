@@ -712,6 +712,21 @@
       };
     }
 
+    function getWorkday(today, offset) {
+      const d = new Date(today);
+      if (offset === 0) {
+        while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+        return d;
+      }
+      const step = offset > 0 ? 1 : -1;
+      let remaining = Math.abs(offset);
+      while (remaining > 0) {
+        d.setDate(d.getDate() + step);
+        if (d.getDay() !== 0 && d.getDay() !== 6) remaining--;
+      }
+      return d;
+    }
+
     function replaceDatePlaceholders(text) {
       const dm = getDateMap();
       return text
@@ -719,7 +734,9 @@
         .replace(/\[yesterday\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
         .replace(/\[tomorrow\(([^)]+)\)\]/g,   (_, fmt) => formatDate(dm.tomorrow,  fmt))
         .replace(/\[lastmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.lastmonth, fmt))
-        .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt));
+        .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt))
+        .replace(/\[workday\(([+-]?\d+),\s*([^)]+)\)\]/g,
+          (_, n, fmt) => formatDate(getWorkday(dm.today, parseInt(n)), fmt));
     }
 
     function encodeSpecialChars(str) {
@@ -737,7 +754,11 @@
       const pattern = /\[(today|yesterday|tomorrow|lastmonth|nextmonth)\(([^)]+)\)\]/g;
       let match;
       while ((match = pattern.exec(text)) !== null) {
-        found.push({ placeholder: match[0], keyword: match[1], fmt: match[2] });
+        found.push({ type: 'date', placeholder: match[0], keyword: match[1], fmt: match[2] });
+      }
+      const wdPattern = /\[workday\(([+-]?\d+),\s*([^)]+)\)\]/g;
+      while ((match = wdPattern.exec(text)) !== null) {
+        found.push({ type: 'workday', placeholder: match[0], offset: parseInt(match[1]), fmt: match[2] });
       }
       return found;
     }
@@ -755,8 +776,9 @@
       }
 
       const dm = getDateMap();
-      const dateRows = dateFound.map(({ placeholder, keyword, fmt }) => {
-        const resolved = formatDate(dm[keyword], fmt);
+      const dateRows = dateFound.map(({ type, placeholder, keyword, fmt, offset }) => {
+        const date = type === 'workday' ? getWorkday(dm.today, offset) : dm[keyword];
+        const resolved = formatDate(date, fmt);
         const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
       }).join('');
@@ -858,7 +880,23 @@
       const container = document.getElementById('vars-date-body');
       renderCustomParams();
 
-      const groupsHtml = VAR_GROUPS.map(({ keyword, desc, examples }) => {
+      const workdayExamples = [
+        { offset: -1, fmt: 'yyyy/mm/dd' },
+        { offset: +1, fmt: 'yyyy/mm/dd' },
+        { offset: -1, fmt: 'm月d日(aaa)' },
+        { offset: +1, fmt: 'm月d日(aaa)' },
+      ];
+      const workdayHtml = `<div class="var-group">
+        <div class="var-keyword">workday</div>
+        <div class="var-desc">営業日（土日スキップ）</div>
+        <div class="var-chips">${workdayExamples.map(({ offset, fmt }) => {
+          const tag = `[workday(${offset > 0 ? '+' + offset : offset}, ${fmt})]`;
+          const preview = formatDate(getWorkday(dm.today, offset), fmt);
+          return `<span class="var-chip" onclick="insertPlaceholder('${tag.replace(/'/g, "\\'")}')" title="${tag}">${tag}<span class="var-chip-preview">${preview}</span></span>`;
+        }).join('')}</div>
+      </div>`;
+
+      const groupsHtml = workdayHtml + VAR_GROUPS.map(({ keyword, desc, examples }) => {
         const chipsHtml = examples.map(fmt => {
           const preview = formatDate(dm[keyword], fmt);
           const tag = `[${keyword}(${fmt})]`;

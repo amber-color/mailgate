@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>メールを開いています…</title>
+  <title>mailgate</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,13 +15,19 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: #f0f2f5;
       min-height: 100vh;
+    }
+
+    /* ── Redirect mode ─────────────────────────────── */
+
+    #mode-redirect {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
 
-    .compose-window {
+    .redirect-window {
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
@@ -30,32 +36,7 @@
       overflow: hidden;
     }
 
-    .compose-header {
-      background: #404040;
-      color: #fff;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .compose-body {
+    .redirect-body {
       padding: 20px;
     }
 
@@ -73,22 +54,6 @@
       font-size: 12px;
       color: #888;
       margin-bottom: 6px;
-    }
-
-    .mailto-link {
-      display: inline-block;
-      background: #1a73e8;
-      color: #fff;
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: background 0.15s;
-    }
-
-    .mailto-link:hover {
-      background: #1557b0;
     }
 
     .debug-section {
@@ -143,30 +108,376 @@
       color: #888;
       padding-right: 12px;
     }
+
+    /* ── Shared: compose-header / spinner / btn ──────── */
+
+    .compose-header {
+      background: #404040;
+      color: #fff;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: #1a73e8;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover { background: #1557b0; }
+
+    /* ── Builder mode ──────────────────────────────── */
+
+    #mode-builder {
+      padding: 24px 20px;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .page-heading {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .page-heading span {
+      font-size: 13px;
+      font-weight: 400;
+      color: #888;
+      margin-left: 8px;
+    }
+
+    .builder-layout {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    /* Main column */
+    .builder-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .compose-window {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      padding: 9px 16px;
+      border-top: 1px solid #e8eaed;
+    }
+
+    .field-row label {
+      width: 52px;
+      font-size: 13px;
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .field-row input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      padding: 2px 0;
+      background: transparent;
+    }
+
+    .field-row input::placeholder { color: #ccc; }
+
+    .body-field {
+      border-top: 1px solid #e8eaed;
+      padding: 12px 16px;
+    }
+
+    .body-field textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      resize: vertical;
+      min-height: 160px;
+      background: transparent;
+    }
+
+    .body-field textarea::placeholder { color: #ccc; }
+
+    /* URL output */
+    .url-section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 16px;
+    }
+
+    .url-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .url-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .url-text {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #1a73e8;
+      word-break: break-all;
+      line-height: 1.7;
+      min-height: 22px;
+    }
+
+    .url-text.empty {
+      color: #bbb;
+      font-style: italic;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover { background: #1557b0; }
+    .copy-btn.copied { background: #34a853; }
+
+    /* Variables panel */
+    .vars-panel {
+      width: 264px;
+      flex-shrink: 0;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+    }
+
+    .vars-body {
+      padding: 8px 0 4px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+
+    .var-group {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .var-group:last-child { border-bottom: none; }
+
+    .var-keyword {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #c2185b;
+      margin-bottom: 2px;
+    }
+
+    .var-desc {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 7px;
+    }
+
+    .var-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .var-chip {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      padding: 2px 6px;
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+
+    .var-chip:hover {
+      background: #e8f0fe;
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+
+    .var-chip-hint {
+      font-size: 10px;
+      color: #aaa;
+      margin-left: 4px;
+    }
+
+    .token-section {
+      padding: 10px 16px 12px;
+      border-top: 1px solid #e8eaed;
+    }
+
+    .token-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 10px;
+      font-size: 11px;
+    }
+
+    .token-key {
+      font-family: 'Courier New', monospace;
+      color: #c2185b;
+      white-space: nowrap;
+    }
+
+    .token-val { color: #666; }
+
+    /* Responsive */
+    @media (max-width: 720px) {
+      .builder-layout { flex-direction: column; }
+      .vars-panel { width: 100%; }
+      .vars-body { max-height: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="compose-window">
-    <div class="compose-header">
-      <div class="spinner"></div>
-      <span>メールを開いています…</span>
-    </div>
-    <div class="compose-body">
-      <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
 
-      <div class="mailto-link-section">
-        <p>自動で開かない場合：</p>
-        <a id="mailto-btn" href="#" class="mailto-link">メールを開く</a>
+  <!-- ── Redirect mode ──────────────────────────────────── -->
+  <div id="mode-redirect" style="display:none">
+    <div class="redirect-window">
+      <div class="compose-header">
+        <div class="spinner"></div>
+        <span>メールを開いています…</span>
       </div>
+      <div class="redirect-body">
+        <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
 
-      <div class="debug-section">
-        <h3>日付プレースホルダーの置換結果</h3>
-        <div id="debug-output"></div>
+        <div class="mailto-link-section">
+          <p>自動で開かない場合：</p>
+          <a id="mailto-btn" href="#" class="btn-primary">メールを開く</a>
+        </div>
+
+        <div class="debug-section">
+          <h3>日付プレースホルダーの置換結果</h3>
+          <div id="debug-output"></div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- ── Builder mode ───────────────────────────────────── -->
+  <div id="mode-builder" style="display:none">
+    <p class="page-heading">mailgate <span>URL ジェネレーター</span></p>
+    <div class="builder-layout">
+
+      <!-- Main: compose + URL output -->
+      <div class="builder-main">
+        <div class="compose-window">
+          <div class="compose-header">新しいメール</div>
+          <div class="field-row">
+            <label for="f-to">To</label>
+            <input id="f-to" type="text" placeholder="宛先メールアドレス" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-row">
+            <label for="f-cc">CC</label>
+            <input id="f-cc" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-row">
+            <label for="f-bcc">BCC</label>
+            <input id="f-bcc" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="field-row">
+            <label for="f-subject">件名</label>
+            <input id="f-subject" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="body-field">
+            <textarea id="f-body" placeholder="本文" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div class="url-section">
+          <div class="url-section-label">生成されたURL</div>
+          <div class="url-row">
+            <span id="generated-url" class="url-text empty">パラメータを入力するとURLが生成されます</span>
+            <button class="copy-btn" id="copy-btn" onclick="copyUrl()">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: variables panel -->
+      <div class="vars-panel">
+        <div class="compose-header">日付プレースホルダー</div>
+        <div class="vars-body" id="vars-body"></div>
+      </div>
+
+    </div>
+  </div>
+
   <script>
+    /* ── Date utilities ─────────────────────────────────── */
+
     function formatDate(date, fmt) {
       const yyyy = date.getFullYear();
       const yy = String(yyyy).slice(-2);
@@ -204,7 +515,7 @@
         .replace(/S/g, S);
     }
 
-    function replaceDatePlaceholders(text) {
+    function getDateMap() {
       const today = new Date();
       const yesterday = new Date(today);
       if (today.getDay() === 1) {
@@ -212,18 +523,28 @@
       } else {
         yesterday.setDate(today.getDate() - 1);
       }
-      const thisMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      return {
+        today,
+        yesterday,
+        thismonth: new Date(today.getFullYear(), today.getMonth(), 1),
+        nextmonth: new Date(today.getFullYear(), today.getMonth() + 1, 1),
+      };
+    }
+
+    function replaceDatePlaceholders(text) {
+      const dm = getDateMap();
       return text
-        .replace(/\[today\(([^)]+)\)\]/g, (_, fmt) => formatDate(today, fmt))
-        .replace(/\[yesterday\(([^)]+)\)\]/g, (_, fmt) => formatDate(yesterday, fmt))
-        .replace(/\[thismonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(thisMonthDate, fmt))
-        .replace(/\[nextmonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(nextMonthDate, fmt));
+        .replace(/\[today\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.today, fmt))
+        .replace(/\[yesterday\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.yesterday, fmt))
+        .replace(/\[thismonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.thismonth, fmt))
+        .replace(/\[nextmonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.nextmonth, fmt));
     }
 
     function encodeSpecialChars(str) {
       return str.replace(/[%&=#?]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
+
+    /* ── Redirect mode ──────────────────────────────────── */
 
     function collectPlaceholders(text) {
       const found = [];
@@ -235,8 +556,8 @@
       return found;
     }
 
-    function buildDebugInfo(params) {
-      const allText = Object.values(params).join('\n');
+    function buildDebugInfo(rawParams) {
+      const allText = Object.values(rawParams).join('\n');
       const found = collectPlaceholders(allText);
       const debugEl = document.getElementById('debug-output');
 
@@ -245,76 +566,222 @@
         return;
       }
 
-      const today = new Date();
-      const yesterday = new Date(today);
-      if (today.getDay() === 1) {
-        yesterday.setDate(today.getDate() - 3);
-      } else {
-        yesterday.setDate(today.getDate() - 1);
-      }
-      const thisMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-
-      const dateMap = { today, yesterday, thismonth: thisMonthDate, nextmonth: nextMonthDate };
-
+      const dm = getDateMap();
       const rows = found.map(({ placeholder, keyword, fmt }) => {
-        const resolved = formatDate(dateMap[keyword], fmt);
-        const escapedPlaceholder = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return `<tr>
-          <td>${escapedPlaceholder}</td>
-          <td>→</td>
-          <td>${resolved}</td>
-        </tr>`;
+        const resolved = formatDate(dm[keyword], fmt);
+        const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
       }).join('');
 
       debugEl.innerHTML = `
         <table class="debug-table">
-          <thead>
-            <tr>
-              <th>プレースホルダー</th>
-              <th></th>
-              <th>置換後の値</th>
-            </tr>
-          </thead>
+          <thead><tr><th>プレースホルダー</th><th></th><th>置換後の値</th></tr></thead>
           <tbody>${rows}</tbody>
-        </table>
-      `;
+        </table>`;
     }
 
-    (function () {
-      const params = new URLSearchParams(location.search);
+    function runRedirectMode(params) {
       const rawParams = {
-        to: params.get('to') ?? '',
-        cc: params.get('cc') ?? '',
-        bcc: params.get('bcc') ?? '',
+        to:      params.get('to')      ?? '',
+        cc:      params.get('cc')      ?? '',
+        bcc:     params.get('bcc')     ?? '',
         subject: params.get('subject') ?? '',
-        body: params.get('body') ?? '',
+        body:    params.get('body')    ?? '',
       };
 
       buildDebugInfo(rawParams);
 
-      const to = replaceDatePlaceholders(rawParams.to);
-      const cc = replaceDatePlaceholders(rawParams.cc);
-      const bcc = replaceDatePlaceholders(rawParams.bcc);
+      const to      = replaceDatePlaceholders(rawParams.to);
+      const cc      = replaceDatePlaceholders(rawParams.cc);
+      const bcc     = replaceDatePlaceholders(rawParams.bcc);
       const subject = replaceDatePlaceholders(rawParams.subject);
-      const body = replaceDatePlaceholders(rawParams.body);
+      const body    = replaceDatePlaceholders(rawParams.body);
 
       const queryParts = [];
-      if (cc) queryParts.push('cc=' + encodeSpecialChars(cc));
-      if (bcc) queryParts.push('bcc=' + encodeSpecialChars(bcc));
+      if (cc)      queryParts.push('cc='      + encodeSpecialChars(cc));
+      if (bcc)     queryParts.push('bcc='     + encodeSpecialChars(bcc));
       if (subject) queryParts.push('subject=' + encodeSpecialChars(subject));
-      if (body) queryParts.push('body=' + encodeSpecialChars(body));
+      if (body)    queryParts.push('body='    + encodeSpecialChars(body));
 
       const mailtoUrl = 'mailto:' + encodeSpecialChars(to)
         + (queryParts.length ? '?' + queryParts.join('&') : '');
 
       document.getElementById('mailto-btn').href = mailtoUrl;
 
+      document.getElementById('mode-redirect').style.display = 'flex';
+
+      window.location.href = mailtoUrl;
+      window.close();
+    }
+
+    /* ── Builder mode ───────────────────────────────────── */
+
+    const VAR_GROUPS = [
+      {
+        keyword: 'today',
+        desc: '今日の日付',
+        examples: [
+          'yyyy/mm/dd',
+          'yyyy年m月d日',
+          'yyyy年m月d日(aaa)',
+          'mm/dd(aaa)',
+          'aaaa',
+          'ddd',
+        ],
+      },
+      {
+        keyword: 'yesterday',
+        desc: '前日（月曜の場合は金曜）',
+        examples: [
+          'yyyy/mm/dd',
+          'mm/dd',
+          'm月d日(aaa)',
+        ],
+      },
+      {
+        keyword: 'thismonth',
+        desc: '今月1日',
+        examples: [
+          'yyyy/mm',
+          'yyyy年m月',
+          'yyyymm',
+        ],
+      },
+      {
+        keyword: 'nextmonth',
+        desc: '来月1日',
+        examples: [
+          'yyyy/mm',
+          'yyyy年m月',
+          'yyyymm',
+        ],
+      },
+    ];
+
+    const TOKENS = [
+      ['yyyy', '年4桁'],
+      ['yy',   '年下2桁'],
+      ['mm',   '月2桁(ゼロ埋め)'],
+      ['m',    '月'],
+      ['dd',   '日2桁(ゼロ埋め)'],
+      ['d',    '日'],
+      ['dddd', '曜日(英語フル)'],
+      ['ddd',  '曜日(英語略)'],
+      ['aaaa', '曜日(日本語フル)'],
+      ['aaa',  '曜日(日本語)'],
+      ['HH',   '時2桁'],
+      ['H',    '時'],
+      ['MM',   '分2桁'],
+      ['M',    '分'],
+      ['SS',   '秒2桁'],
+      ['S',    '秒'],
+    ];
+
+    function buildVarsPanel() {
+      const dm = getDateMap();
+      const container = document.getElementById('vars-body');
+
+      const groupsHtml = VAR_GROUPS.map(({ keyword, desc, examples }) => {
+        const chipsHtml = examples.map(fmt => {
+          const preview = formatDate(dm[keyword], fmt);
+          return `<span class="var-chip" onclick="insertPlaceholder('[${keyword}(${fmt})]')" title="${preview}">[${keyword}(${fmt})]<span class="var-chip-hint">${preview}</span></span>`;
+        }).join('');
+        return `<div class="var-group">
+          <div class="var-keyword">${keyword}</div>
+          <div class="var-desc">${desc}</div>
+          <div class="var-chips">${chipsHtml}</div>
+        </div>`;
+      }).join('');
+
+      const tokenRowsHtml = TOKENS.map(([k, v]) =>
+        `<span class="token-key">${k}</span><span class="token-val">${v}</span>`
+      ).join('');
+
+      container.innerHTML = groupsHtml + `
+        <div class="token-section">
+          <div class="token-section-label">フォーマットトークン</div>
+          <div class="token-grid">${tokenRowsHtml}</div>
+        </div>`;
+    }
+
+    let lastFocused = null;
+
+    function trackFocus() {
+      ['f-to', 'f-cc', 'f-bcc', 'f-subject', 'f-body'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('focus', () => { lastFocused = el; });
+        el.addEventListener('input', updateUrl);
+      });
+    }
+
+    function insertPlaceholder(text) {
+      const el = lastFocused || document.getElementById('f-subject');
+      el.focus();
+      const start = el.selectionStart ?? el.value.length;
+      const end   = el.selectionEnd   ?? el.value.length;
+      el.value = el.value.slice(0, start) + text + el.value.slice(end);
+      el.selectionStart = el.selectionEnd = start + text.length;
+      updateUrl();
+    }
+
+    function updateUrl() {
+      const to      = document.getElementById('f-to').value.trim();
+      const cc      = document.getElementById('f-cc').value.trim();
+      const bcc     = document.getElementById('f-bcc').value.trim();
+      const subject = document.getElementById('f-subject').value.trim();
+      const body    = document.getElementById('f-body').value;
+
+      const urlEl = document.getElementById('generated-url');
+
+      if (!to && !cc && !bcc && !subject && !body.trim()) {
+        urlEl.textContent = 'パラメータを入力するとURLが生成されます';
+        urlEl.classList.add('empty');
+        return;
+      }
+
+      const base = location.origin + location.pathname;
+      const qp = new URLSearchParams();
+      if (to)          qp.set('to',      to);
+      if (cc)          qp.set('cc',      cc);
+      if (bcc)         qp.set('bcc',     bcc);
+      if (subject)     qp.set('subject', subject);
+      if (body.trim()) qp.set('body',    body);
+
+      urlEl.textContent = base + '?' + qp.toString();
+      urlEl.classList.remove('empty');
+    }
+
+    function copyUrl() {
+      const urlEl = document.getElementById('generated-url');
+      if (urlEl.classList.contains('empty')) return;
+      navigator.clipboard.writeText(urlEl.textContent).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'コピーしました';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'コピー';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    function runBuilderMode() {
+      buildVarsPanel();
+      trackFocus();
+      document.getElementById('mode-builder').style.display = 'block';
+    }
+
+    /* ── Entry point ────────────────────────────────────── */
+
+    (function () {
+      const params = new URLSearchParams(location.search);
       const hasParams = params.has('to') || params.has('cc') || params.has('bcc')
         || params.has('subject') || params.has('body');
+
       if (hasParams) {
-        window.location.href = mailtoUrl;
-        window.close();
+        runRedirectMode(params);
+      } else {
+        runBuilderMode();
       }
     })();
   </script>

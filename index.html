@@ -730,12 +730,12 @@
     function replaceDatePlaceholders(text) {
       const dm = getDateMap();
       return text
-        .replace(/\[today\(([^)]+)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
-        .replace(/\[yesterday\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
-        .replace(/\[tomorrow\(([^)]+)\)\]/g,   (_, fmt) => formatDate(dm.tomorrow,  fmt))
-        .replace(/\[lastmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.lastmonth, fmt))
-        .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt))
-        .replace(/\[workday\(([+-]?\d+),\s*([^)]+)\)\]/g,
+        .replace(/\[today\((.+?)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
+        .replace(/\[yesterday\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
+        .replace(/\[tomorrow\((.+?)\)\]/g,   (_, fmt) => formatDate(dm.tomorrow,  fmt))
+        .replace(/\[lastmonth\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.lastmonth, fmt))
+        .replace(/\[nextmonth\((.+?)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt))
+        .replace(/\[workday\(([+-]?\d+),\s*(.+?)\)\]/g,
           (_, n, fmt) => formatDate(getWorkday(dm.today, parseInt(n)), fmt));
     }
 
@@ -751,12 +751,12 @@
 
     function collectPlaceholders(text) {
       const found = [];
-      const pattern = /\[(today|yesterday|tomorrow|lastmonth|nextmonth)\(([^)]+)\)\]/g;
+      const pattern = /\[(today|yesterday|tomorrow|lastmonth|nextmonth)\((.+?)\)\]/g;
       let match;
       while ((match = pattern.exec(text)) !== null) {
         found.push({ type: 'date', placeholder: match[0], keyword: match[1], fmt: match[2] });
       }
-      const wdPattern = /\[workday\(([+-]?\d+),\s*([^)]+)\)\]/g;
+      const wdPattern = /\[workday\(([+-]?\d+),\s*(.+?)\)\]/g;
       while ((match = wdPattern.exec(text)) !== null) {
         found.push({ type: 'workday', placeholder: match[0], offset: parseInt(match[1]), fmt: match[2] });
       }

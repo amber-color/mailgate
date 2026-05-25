@@ -73,8 +73,8 @@ URLのクエリパラメータからメール各項目を受け取り、日付�
 [today(yyyy年m月d日(aaa))]  → 2025年5月25日(日)
 [yesterday(mm/dd)]          → 05/24
 [workday(-1, yyyy/mm/dd)]   → 前営業日
-[workday(+1, m月d日(aaa))] → 翌営業日（曜日付き）
-[workday(0, yyyy/mm/dd)]   → 今日（土日なら直前の金曜）
+[workday(+1, m月d日(aaa))]  → 翌営業日（曜日付き）
+[workday(0, yyyy/mm/dd)]    → 今日（土日なら直前の金曜）
 [tomorrow(mm/dd)]           → 05/26
 [lastmonth(yyyy年m月)]      → 2025年4月
 [nextmonth(yyyy年m月)]      → 2025年6月
@@ -94,12 +94,9 @@ URLのクエリパラメータに任意のキーと値を追加すると、`[par
 テンプレートを1つ作り、宛名や案件名だけ変えて使い回す用途に便利です。
 
 ```
-https://mailgate.pages.dev/?to=boss@example.com
-  &subject=[today(mm%2Fdd)]%20[param:project]打ち合わせ
-  &body=[param:name]%0Aいつもお世話になっております。
-  &name=田中様
-  &project=ECサイト
+https://mailgate.pages.dev/?to=boss@example.com&subject=[today(mm/dd)] [param:project]打ち合わせ&body=[param:name]%0Aいつもお世話になっております。&name=田中様&project=ECサイト
 ```
+[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Btoday(mm/dd)%5D%20%5Bparam:project%5D打ち合わせ&body=%5Bparam:name%5D%0Aいつもお世話になっております。&name=田中様&project=ECサイト)
 
 URLジェネレーター（パラメータなしでアクセス）の変数パネルからカスタム変数を追加すると、URLに自動で付加されます。
 
@@ -112,21 +109,25 @@ URLジェネレーター（パラメータなしでアクセス）の変数パ�
 ```
 https://mailgate.pages.dev/?to=example@example.com&subject=ご連絡&body=お世話になっております。
 ```
+[→ 試す](https://mailgate.pages.dev/?to=example@example.com&subject=ご連絡&body=お世話になっております。)
 
 件名に今日の日付を入れる：
 
 ```
-https://mailgate.pages.dev/?to=boss@example.com&subject=[today(yyyy%2Fmm%2Fdd)]%20日報&body=[today(m月d日(aaa))]の作業報告です。
+https://mailgate.pages.dev/?to=boss@example.com&subject=[today(yyyy/mm/dd)] 日報&body=[today(m月d日(aaa))]の作業報告です。
 ```
+[→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Btoday(yyyy/mm/dd)%5D%20日報&body=%5Btoday(m月d日(aaa))%5Dの作業報告です。)
 
 前営業日を本文に入れる：
 
 ```
 https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=[yesterday(yyyy年m月d日(aaa))]の会議議事録を添付します。
 ```
+[→ 試す](https://mailgate.pages.dev/?to=team@example.com&subject=議事録送付&body=%5Byesterday(yyyy年m月d日(aaa))%5Dの会議議事録を添付します。)
 
-今月・来月を件名に使う：
+先月・来月を件名に使う：
 
 ```
-https://mailgate.pages.dev/?to=accounting@example.com&subject=[thismonth(yyyy年m月)]請求書について&body=[nextmonth(m月)]分の請求書をご確認ください。
+https://mailgate.pages.dev/?to=accounting@example.com&subject=[lastmonth(yyyy年m月)]請求書について&body=[nextmonth(m月)]分の請求書をご確認ください。
 ```
+[→ 試す](https://mailgate.pages.dev/?to=accounting@example.com&subject=%5Blastmonth(yyyy年m月)%5D請求書について&body=%5Bnextmonth(m月)%5D分の請求書をご確認ください。)

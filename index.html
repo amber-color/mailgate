@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メールを開いています…</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .compose-window {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      width: 100%;
+      max-width: 580px;
+      overflow: hidden;
+    }
+
+    .compose-header {
+      background: #404040;
+      color: #fff;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .compose-body {
+      padding: 20px;
+    }
+
+    .status-text {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .mailto-link-section {
+      margin-bottom: 20px;
+    }
+
+    .mailto-link-section p {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .mailto-link {
+      display: inline-block;
+      background: #1a73e8;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .mailto-link:hover {
+      background: #1557b0;
+    }
+
+    .debug-section {
+      border-top: 1px solid #e8eaed;
+      padding-top: 16px;
+    }
+
+    .debug-section h3 {
+      font-size: 12px;
+      color: #888;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .debug-empty {
+      font-size: 12px;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    .debug-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .debug-table th {
+      text-align: left;
+      color: #888;
+      font-weight: 500;
+      padding: 4px 8px 4px 0;
+      border-bottom: 1px solid #e8eaed;
+    }
+
+    .debug-table td {
+      padding: 5px 8px 5px 0;
+      color: #333;
+      border-bottom: 1px solid #f5f5f5;
+      word-break: break-all;
+    }
+
+    .debug-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: #c2185b;
+      white-space: nowrap;
+      padding-right: 12px;
+    }
+
+    .debug-table td:nth-child(2) {
+      color: #888;
+      padding-right: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="compose-window">
+    <div class="compose-header">
+      <div class="spinner"></div>
+      <span>メールを開いています…</span>
+    </div>
+    <div class="compose-body">
+      <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
+
+      <div class="mailto-link-section">
+        <p>自動で開かない場合：</p>
+        <a id="mailto-btn" href="#" class="mailto-link">メールを開く</a>
+      </div>
+
+      <div class="debug-section">
+        <h3>日付プレースホルダーの置換結果</h3>
+        <div id="debug-output"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatDate(date, fmt) {
+      const yyyy = date.getFullYear();
+      const yy = String(yyyy).slice(-2);
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const m = date.getMonth() + 1;
+      const dd = String(date.getDate()).padStart(2, '0');
+      const d = date.getDate();
+      const HH = String(date.getHours()).padStart(2, '0');
+      const H = date.getHours();
+      const MM = String(date.getMinutes()).padStart(2, '0');
+      const M = date.getMinutes();
+      const SS = String(date.getSeconds()).padStart(2, '0');
+      const S = date.getSeconds();
+      const dow = date.getDay();
+      const dowEn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const dowShEn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dowJaFull = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
+      const dowJa = ['日','月','火','水','木','金','土'];
+      return fmt
+        .replace(/dddd/g, dowEn[dow])
+        .replace(/ddd/g, dowShEn[dow])
+        .replace(/aaaa/g, dowJaFull[dow])
+        .replace(/aaa/g, dowJa[dow])
+        .replace(/yyyy/g, yyyy)
+        .replace(/yy/g, yy)
+        .replace(/mm/g, mm)
+        .replace(/dd/g, dd)
+        .replace(/HH/g, HH)
+        .replace(/MM/g, MM)
+        .replace(/SS/g, SS)
+        .replace(/m/g, m)
+        .replace(/d/g, d)
+        .replace(/H/g, H)
+        .replace(/M/g, M)
+        .replace(/S/g, S);
+    }
+
+    function replaceDatePlaceholders(text) {
+      const today = new Date();
+      const yesterday = new Date(today);
+      if (today.getDay() === 1) {
+        yesterday.setDate(today.getDate() - 3);
+      } else {
+        yesterday.setDate(today.getDate() - 1);
+      }
+      const thisMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      return text
+        .replace(/\[today\(([^)]+)\)\]/g, (_, fmt) => formatDate(today, fmt))
+        .replace(/\[yesterday\(([^)]+)\)\]/g, (_, fmt) => formatDate(yesterday, fmt))
+        .replace(/\[thismonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(thisMonthDate, fmt))
+        .replace(/\[nextmonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(nextMonthDate, fmt));
+    }
+
+    function encodeSpecialChars(str) {
+      return str.replace(/[%&=#?]|\r\n|\r|\n/g, c => encodeURIComponent(c));
+    }
+
+    function collectPlaceholders(text) {
+      const found = [];
+      const pattern = /\[(today|yesterday|thismonth|nextmonth)\(([^)]+)\)\]/g;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        found.push({ placeholder: match[0], keyword: match[1], fmt: match[2] });
+      }
+      return found;
+    }
+
+    function buildDebugInfo(params) {
+      const allText = Object.values(params).join('\n');
+      const found = collectPlaceholders(allText);
+      const debugEl = document.getElementById('debug-output');
+
+      if (found.length === 0) {
+        debugEl.innerHTML = '<p class="debug-empty">日付プレースホルダーは使用されていません</p>';
+        return;
+      }
+
+      const today = new Date();
+      const yesterday = new Date(today);
+      if (today.getDay() === 1) {
+        yesterday.setDate(today.getDate() - 3);
+      } else {
+        yesterday.setDate(today.getDate() - 1);
+      }
+      const thisMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+      const dateMap = { today, yesterday, thismonth: thisMonthDate, nextmonth: nextMonthDate };
+
+      const rows = found.map(({ placeholder, keyword, fmt }) => {
+        const resolved = formatDate(dateMap[keyword], fmt);
+        const escapedPlaceholder = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<tr>
+          <td>${escapedPlaceholder}</td>
+          <td>→</td>
+          <td>${resolved}</td>
+        </tr>`;
+      }).join('');
+
+      debugEl.innerHTML = `
+        <table class="debug-table">
+          <thead>
+            <tr>
+              <th>プレースホルダー</th>
+              <th></th>
+              <th>置換後の値</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const rawParams = {
+        to: params.get('to') ?? '',
+        cc: params.get('cc') ?? '',
+        bcc: params.get('bcc') ?? '',
+        subject: params.get('subject') ?? '',
+        body: params.get('body') ?? '',
+      };
+
+      buildDebugInfo(rawParams);
+
+      const to = replaceDatePlaceholders(rawParams.to);
+      const cc = replaceDatePlaceholders(rawParams.cc);
+      const bcc = replaceDatePlaceholders(rawParams.bcc);
+      const subject = replaceDatePlaceholders(rawParams.subject);
+      const body = replaceDatePlaceholders(rawParams.body);
+
+      const queryParts = [];
+      if (cc) queryParts.push('cc=' + encodeSpecialChars(cc));
+      if (bcc) queryParts.push('bcc=' + encodeSpecialChars(bcc));
+      if (subject) queryParts.push('subject=' + encodeSpecialChars(subject));
+      if (body) queryParts.push('body=' + encodeSpecialChars(body));
+
+      const mailtoUrl = 'mailto:' + encodeSpecialChars(to)
+        + (queryParts.length ? '?' + queryParts.join('&') : '');
+
+      document.getElementById('mailto-btn').href = mailtoUrl;
+
+      window.location.href = mailtoUrl;
+      window.close();
+    })();
+  </script>
+</body>
+</html>

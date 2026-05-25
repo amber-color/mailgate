@@ -13,11 +13,12 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f0f2f5;
+      background: #eaecf4;
       min-height: 100vh;
+      color: #2d3748;
     }
 
-    /* ── Redirect mode ─────────────────────────────── */
+    /* ── Redirect mode ─────────────────────────────────── */
 
     #mode-redirect {
       min-height: 100vh;
@@ -29,89 +30,14 @@
 
     .redirect-window {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(100, 120, 200, 0.12);
       width: 100%;
-      max-width: 580px;
+      max-width: 560px;
       overflow: hidden;
     }
 
-    .redirect-body {
-      padding: 20px;
-    }
-
-    .status-text {
-      font-size: 15px;
-      color: #333;
-      margin-bottom: 16px;
-    }
-
-    .mailto-link-section {
-      margin-bottom: 20px;
-    }
-
-    .mailto-link-section p {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 6px;
-    }
-
-    .debug-section {
-      border-top: 1px solid #e8eaed;
-      padding-top: 16px;
-    }
-
-    .debug-section h3 {
-      font-size: 12px;
-      color: #888;
-      font-weight: 500;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .debug-empty {
-      font-size: 12px;
-      color: #aaa;
-      font-style: italic;
-    }
-
-    .debug-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .debug-table th {
-      text-align: left;
-      color: #888;
-      font-weight: 500;
-      padding: 4px 8px 4px 0;
-      border-bottom: 1px solid #e8eaed;
-    }
-
-    .debug-table td {
-      padding: 5px 8px 5px 0;
-      color: #333;
-      border-bottom: 1px solid #f5f5f5;
-      word-break: break-all;
-    }
-
-    .debug-table td:first-child {
-      font-family: 'Courier New', monospace;
-      color: #c2185b;
-      white-space: nowrap;
-      padding-right: 12px;
-    }
-
-    .debug-table td:nth-child(2) {
-      color: #888;
-      padding-right: 12px;
-    }
-
-    /* ── Shared: compose-header / spinner / btn ──────── */
-
-    .compose-header {
+    .redirect-header {
       background: #404040;
       color: #fff;
       padding: 12px 16px;
@@ -132,17 +58,36 @@
       flex-shrink: 0;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .redirect-body {
+      padding: 20px;
+    }
+
+    .status-text {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .mailto-link-section {
+      margin-bottom: 20px;
+    }
+
+    .mailto-link-section p {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
     }
 
     .btn-primary {
       display: inline-block;
-      background: #1a73e8;
+      background: #6b84cc;
       color: #fff;
       text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 4px;
+      padding: 8px 18px;
+      border-radius: 6px;
       font-size: 14px;
       font-weight: 500;
       transition: background 0.15s;
@@ -150,62 +95,184 @@
       cursor: pointer;
     }
 
-    .btn-primary:hover { background: #1557b0; }
+    .btn-primary:hover { background: #5470b8; }
 
-    /* ── Builder mode ──────────────────────────────── */
+    .debug-section {
+      border-top: 1px solid #eaecf4;
+      padding-top: 16px;
+    }
+
+    .debug-section h3 {
+      font-size: 11px;
+      color: #999;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .debug-empty {
+      font-size: 12px;
+      color: #bbb;
+      font-style: italic;
+    }
+
+    .debug-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .debug-table th {
+      text-align: left;
+      color: #999;
+      font-weight: 500;
+      padding: 4px 8px 4px 0;
+      border-bottom: 1px solid #eaecf4;
+    }
+
+    .debug-table td {
+      padding: 5px 8px 5px 0;
+      color: #444;
+      border-bottom: 1px solid #f5f5f5;
+      word-break: break-all;
+    }
+
+    .debug-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: #c2185b;
+      white-space: nowrap;
+      padding-right: 12px;
+    }
+
+    .debug-table td:nth-child(2) {
+      color: #999;
+      padding-right: 12px;
+    }
+
+    /* ── Builder mode ──────────────────────────────────── */
 
     #mode-builder {
-      padding: 24px 20px;
-      max-width: 1040px;
+      padding: 24px 20px 40px;
+    }
+
+    .builder-page {
+      max-width: 920px;
       margin: 0 auto;
     }
 
-    .page-heading {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 20px;
+    /* Restore card */
+    .restore-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
+      padding: 18px 20px;
+      margin-bottom: 16px;
     }
 
-    .page-heading span {
+    .restore-title {
       font-size: 13px;
-      font-weight: 400;
-      color: #888;
-      margin-left: 8px;
+      font-weight: 600;
+      color: #4c5f8e;
+      margin-bottom: 12px;
     }
 
+    .restore-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .restore-input {
+      flex: 1;
+      border: 1px solid #d8dcea;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      color: #2d3748;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .restore-input::placeholder { color: #b0b8d4; }
+    .restore-input:focus { border-color: #6b84cc; }
+
+    .restore-btn {
+      background: #6b84cc;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .restore-btn:hover { background: #5470b8; }
+
+    /* Builder two-column layout */
     .builder-layout {
       display: flex;
       gap: 16px;
       align-items: flex-start;
     }
 
-    /* Main column */
     .builder-main {
       flex: 1;
       min-width: 0;
     }
 
+    /* Compose window */
     .compose-window {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
       overflow: hidden;
-      margin-bottom: 16px;
+    }
+
+    .compose-header {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #eaecf4;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+
+    .compose-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4c5f8e;
+      margin-left: 4px;
     }
 
     .field-row {
       display: flex;
-      align-items: center;
-      padding: 9px 16px;
-      border-top: 1px solid #e8eaed;
+      align-items: flex-start;
+      padding: 13px 20px;
+      border-bottom: 1px solid #eaecf4;
     }
 
     .field-row label {
       width: 52px;
-      font-size: 13px;
-      color: #888;
+      font-size: 14px;
+      font-weight: 700;
+      color: #4c5f8e;
       flex-shrink: 0;
+      padding-top: 1px;
     }
 
     .field-row input {
@@ -214,108 +281,115 @@
       outline: none;
       font-size: 14px;
       font-family: inherit;
-      color: #333;
-      padding: 2px 0;
+      color: #2d3748;
       background: transparent;
     }
 
-    .field-row input::placeholder { color: #ccc; }
+    .field-row input::placeholder { color: #b0b8d4; }
 
-    .body-field {
-      border-top: 1px solid #e8eaed;
-      padding: 12px 16px;
+    .body-area {
+      padding: 14px 20px;
+      border-bottom: 1px solid #eaecf4;
     }
 
-    .body-field textarea {
+    .body-area textarea {
       width: 100%;
       border: none;
       outline: none;
       font-size: 14px;
       font-family: inherit;
-      color: #333;
+      color: #2d3748;
       resize: vertical;
-      min-height: 160px;
+      min-height: 200px;
       background: transparent;
+      line-height: 1.6;
     }
 
-    .body-field textarea::placeholder { color: #ccc; }
+    .body-area textarea::placeholder { color: #b0b8d4; }
 
-    /* URL output */
-    .url-section {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      padding: 16px;
-    }
-
-    .url-section-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-
-    .url-row {
+    /* URL bar at bottom of compose */
+    .url-bar {
       display: flex;
-      gap: 10px;
-      align-items: flex-start;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
     }
 
     .url-text {
       flex: 1;
-      font-family: 'Courier New', monospace;
       font-size: 12px;
-      color: #1a73e8;
+      color: #6b84cc;
+      font-family: 'Courier New', monospace;
       word-break: break-all;
-      line-height: 1.7;
-      min-height: 22px;
+      line-height: 1.6;
+      min-height: 18px;
     }
 
     .url-text.empty {
-      color: #bbb;
-      font-style: italic;
+      color: #b0b8d4;
       font-family: inherit;
       font-size: 13px;
     }
 
     .copy-btn {
       flex-shrink: 0;
-      background: #1a73e8;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 6px 14px;
+      background: transparent;
+      color: #6b84cc;
+      border: 1.5px solid #6b84cc;
+      border-radius: 6px;
+      padding: 6px 16px;
       font-size: 13px;
       font-weight: 500;
+      font-family: inherit;
       cursor: pointer;
-      transition: background 0.15s;
       white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .copy-btn:hover { background: #1557b0; }
-    .copy-btn.copied { background: #34a853; }
+    .copy-btn:hover {
+      background: #6b84cc;
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: #48bb78;
+      border-color: #48bb78;
+      color: #fff;
+    }
 
     /* Variables panel */
     .vars-panel {
-      width: 264px;
+      width: 256px;
       flex-shrink: 0;
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(100, 120, 200, 0.1);
       overflow: hidden;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vars-panel-header {
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4c5f8e;
+      border-bottom: 1px solid #eaecf4;
+      flex-shrink: 0;
     }
 
     .vars-body {
-      padding: 8px 0 4px;
-      max-height: calc(100vh - 100px);
+      flex: 1;
       overflow-y: auto;
+      padding: 4px 0 8px;
     }
 
     .var-group {
       padding: 10px 16px;
-      border-bottom: 1px solid #f5f5f5;
+      border-bottom: 1px solid #f3f4f8;
     }
 
     .var-group:last-child { border-bottom: none; }
@@ -330,7 +404,7 @@
 
     .var-desc {
       font-size: 11px;
-      color: #888;
+      color: #9aa5c4;
       margin-bottom: 7px;
     }
 
@@ -342,38 +416,41 @@
 
     .var-chip {
       font-family: 'Courier New', monospace;
-      font-size: 11px;
-      background: #f5f5f5;
-      color: #333;
-      border: 1px solid #e0e0e0;
-      border-radius: 3px;
-      padding: 2px 6px;
+      font-size: 10.5px;
+      background: #f3f4f8;
+      color: #4c5f8e;
+      border: 1px solid #dde0ee;
+      border-radius: 4px;
+      padding: 3px 7px;
       cursor: pointer;
       transition: background 0.1s, border-color 0.1s, color 0.1s;
       white-space: nowrap;
+      line-height: 1.4;
     }
 
     .var-chip:hover {
-      background: #e8f0fe;
-      border-color: #1a73e8;
-      color: #1a73e8;
+      background: #e8edf8;
+      border-color: #6b84cc;
+      color: #3a56a8;
     }
 
-    .var-chip-hint {
-      font-size: 10px;
-      color: #aaa;
-      margin-left: 4px;
+    .var-chip-preview {
+      display: block;
+      font-family: inherit;
+      font-size: 9.5px;
+      color: #9aa5c4;
+      margin-top: 1px;
     }
 
     .token-section {
       padding: 10px 16px 12px;
-      border-top: 1px solid #e8eaed;
+      border-top: 1px solid #eaecf4;
     }
 
     .token-section-label {
       font-size: 11px;
-      font-weight: 500;
-      color: #888;
+      font-weight: 600;
+      color: #9aa5c4;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
@@ -382,7 +459,7 @@
     .token-grid {
       display: grid;
       grid-template-columns: auto 1fr;
-      gap: 2px 10px;
+      gap: 3px 10px;
       font-size: 11px;
     }
 
@@ -392,33 +469,35 @@
       white-space: nowrap;
     }
 
-    .token-val { color: #666; }
+    .token-val { color: #7a87a8; }
 
     /* Responsive */
-    @media (max-width: 720px) {
+    @media (max-width: 700px) {
       .builder-layout { flex-direction: column; }
-      .vars-panel { width: 100%; }
-      .vars-body { max-height: none; }
+      .vars-panel {
+        width: 100%;
+        position: static;
+        max-height: none;
+      }
+      .vars-body { max-height: 320px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ── Redirect mode ──────────────────────────────────── -->
+  <!-- ── Redirect mode ────────────────────────────────────────── -->
   <div id="mode-redirect" style="display:none">
     <div class="redirect-window">
-      <div class="compose-header">
+      <div class="redirect-header">
         <div class="spinner"></div>
         <span>メールを開いています…</span>
       </div>
       <div class="redirect-body">
         <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
-
         <div class="mailto-link-section">
           <p>自動で開かない場合：</p>
           <a id="mailto-btn" href="#" class="btn-primary">メールを開く</a>
         </div>
-
         <div class="debug-section">
           <h3>日付プレースホルダーの置換結果</h3>
           <div id="debug-output"></div>
@@ -427,56 +506,69 @@
     </div>
   </div>
 
-  <!-- ── Builder mode ───────────────────────────────────── -->
+  <!-- ── Builder mode ─────────────────────────────────────────── -->
   <div id="mode-builder" style="display:none">
-    <p class="page-heading">mailgate <span>URL ジェネレーター</span></p>
-    <div class="builder-layout">
+    <div class="builder-page">
 
-      <!-- Main: compose + URL output -->
-      <div class="builder-main">
-        <div class="compose-window">
-          <div class="compose-header">新しいメール</div>
-          <div class="field-row">
-            <label for="f-to">To</label>
-            <input id="f-to" type="text" placeholder="宛先メールアドレス" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="field-row">
-            <label for="f-cc">CC</label>
-            <input id="f-cc" type="text" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="field-row">
-            <label for="f-bcc">BCC</label>
-            <input id="f-bcc" type="text" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="field-row">
-            <label for="f-subject">件名</label>
-            <input id="f-subject" type="text" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="body-field">
-            <textarea id="f-body" placeholder="本文" spellcheck="false"></textarea>
-          </div>
-        </div>
-
-        <div class="url-section">
-          <div class="url-section-label">生成されたURL</div>
-          <div class="url-row">
-            <span id="generated-url" class="url-text empty">パラメータを入力するとURLが生成されます</span>
-            <button class="copy-btn" id="copy-btn" onclick="copyUrl()">コピー</button>
-          </div>
+      <!-- Restore -->
+      <div class="restore-card">
+        <div class="restore-title">メールリンクから復元</div>
+        <div class="restore-row">
+          <input id="restore-input" class="restore-input" type="text"
+            placeholder="mailtoリンクをここに貼り付けて「復元」をクリック">
+          <button class="restore-btn" onclick="restoreFromLink()">復元</button>
         </div>
       </div>
 
-      <!-- Right: variables panel -->
-      <div class="vars-panel">
-        <div class="compose-header">日付プレースホルダー</div>
-        <div class="vars-body" id="vars-body"></div>
-      </div>
+      <div class="builder-layout">
 
+        <!-- Main column -->
+        <div class="builder-main">
+          <div class="compose-window">
+            <div class="compose-header">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="compose-title">新規メール</span>
+            </div>
+            <div class="field-row">
+              <label for="f-to">To</label>
+              <input id="f-to" type="text" placeholder="宛先（改行で複数可）" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field-row">
+              <label for="f-cc">Cc</label>
+              <input id="f-cc" type="text" placeholder="（改行で複数可）" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field-row">
+              <label for="f-bcc">Bcc</label>
+              <input id="f-bcc" type="text" placeholder="（改行で複数可）" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field-row">
+              <label for="f-subject">件名</label>
+              <input id="f-subject" type="text" placeholder="件名" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="body-area">
+              <textarea id="f-body" placeholder="本文を入力してください…" spellcheck="false"></textarea>
+            </div>
+            <div class="url-bar">
+              <span id="generated-url" class="url-text empty">入力するとリンクが自動生成されます</span>
+              <button id="copy-btn" class="copy-btn" onclick="copyUrl()">コピー</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="vars-panel">
+          <div class="vars-panel-header">日付プレースホルダー</div>
+          <div class="vars-body" id="vars-body"></div>
+        </div>
+
+      </div>
     </div>
   </div>
 
   <script>
-    /* ── Date utilities ─────────────────────────────────── */
+    /* ── Date utilities ──────────────────────────────────────── */
 
     function formatDate(date, fmt) {
       const yyyy = date.getFullYear();
@@ -492,27 +584,27 @@
       const SS = String(date.getSeconds()).padStart(2, '0');
       const S = date.getSeconds();
       const dow = date.getDay();
-      const dowEn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      const dowShEn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dowEn     = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const dowShEn   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const dowJaFull = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
-      const dowJa = ['日','月','火','水','木','金','土'];
+      const dowJa     = ['日','月','火','水','木','金','土'];
       return fmt
         .replace(/dddd/g, dowEn[dow])
-        .replace(/ddd/g, dowShEn[dow])
+        .replace(/ddd/g,  dowShEn[dow])
         .replace(/aaaa/g, dowJaFull[dow])
-        .replace(/aaa/g, dowJa[dow])
+        .replace(/aaa/g,  dowJa[dow])
         .replace(/yyyy/g, yyyy)
-        .replace(/yy/g, yy)
-        .replace(/mm/g, mm)
-        .replace(/dd/g, dd)
-        .replace(/HH/g, HH)
-        .replace(/MM/g, MM)
-        .replace(/SS/g, SS)
-        .replace(/m/g, m)
-        .replace(/d/g, d)
-        .replace(/H/g, H)
-        .replace(/M/g, M)
-        .replace(/S/g, S);
+        .replace(/yy/g,   yy)
+        .replace(/mm/g,   mm)
+        .replace(/dd/g,   dd)
+        .replace(/HH/g,   HH)
+        .replace(/MM/g,   MM)
+        .replace(/SS/g,   SS)
+        .replace(/m/g,    m)
+        .replace(/d/g,    d)
+        .replace(/H/g,    H)
+        .replace(/M/g,    M)
+        .replace(/S/g,    S);
     }
 
     function getDateMap() {
@@ -534,17 +626,17 @@
     function replaceDatePlaceholders(text) {
       const dm = getDateMap();
       return text
-        .replace(/\[today\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.today, fmt))
-        .replace(/\[yesterday\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.yesterday, fmt))
-        .replace(/\[thismonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.thismonth, fmt))
-        .replace(/\[nextmonth\(([^)]+)\)\]/g, (_, fmt) => formatDate(dm.nextmonth, fmt));
+        .replace(/\[today\(([^)]+)\)\]/g,     (_, fmt) => formatDate(dm.today,     fmt))
+        .replace(/\[yesterday\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.yesterday, fmt))
+        .replace(/\[thismonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.thismonth, fmt))
+        .replace(/\[nextmonth\(([^)]+)\)\]/g,  (_, fmt) => formatDate(dm.nextmonth, fmt));
     }
 
     function encodeSpecialChars(str) {
       return str.replace(/[%&=#?]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
 
-    /* ── Redirect mode ──────────────────────────────────── */
+    /* ── Redirect mode ───────────────────────────────────────── */
 
     function collectPlaceholders(text) {
       const found = [];
@@ -607,74 +699,46 @@
         + (queryParts.length ? '?' + queryParts.join('&') : '');
 
       document.getElementById('mailto-btn').href = mailtoUrl;
-
       document.getElementById('mode-redirect').style.display = 'flex';
 
       window.location.href = mailtoUrl;
       window.close();
     }
 
-    /* ── Builder mode ───────────────────────────────────── */
+    /* ── Builder mode ────────────────────────────────────────── */
 
     const VAR_GROUPS = [
       {
         keyword: 'today',
         desc: '今日の日付',
-        examples: [
-          'yyyy/mm/dd',
-          'yyyy年m月d日',
-          'yyyy年m月d日(aaa)',
-          'mm/dd(aaa)',
-          'aaaa',
-          'ddd',
-        ],
+        examples: ['yyyy/mm/dd', 'yyyy年m月d日', 'yyyy年m月d日(aaa)', 'mm/dd(aaa)', 'aaaa', 'ddd'],
       },
       {
         keyword: 'yesterday',
         desc: '前日（月曜の場合は金曜）',
-        examples: [
-          'yyyy/mm/dd',
-          'mm/dd',
-          'm月d日(aaa)',
-        ],
+        examples: ['yyyy/mm/dd', 'mm/dd', 'm月d日(aaa)'],
       },
       {
         keyword: 'thismonth',
         desc: '今月1日',
-        examples: [
-          'yyyy/mm',
-          'yyyy年m月',
-          'yyyymm',
-        ],
+        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
       },
       {
         keyword: 'nextmonth',
         desc: '来月1日',
-        examples: [
-          'yyyy/mm',
-          'yyyy年m月',
-          'yyyymm',
-        ],
+        examples: ['yyyy/mm', 'yyyy年m月', 'yyyymm'],
       },
     ];
 
     const TOKENS = [
-      ['yyyy', '年4桁'],
-      ['yy',   '年下2桁'],
-      ['mm',   '月2桁(ゼロ埋め)'],
-      ['m',    '月'],
-      ['dd',   '日2桁(ゼロ埋め)'],
-      ['d',    '日'],
-      ['dddd', '曜日(英語フル)'],
-      ['ddd',  '曜日(英語略)'],
-      ['aaaa', '曜日(日本語フル)'],
-      ['aaa',  '曜日(日本語)'],
-      ['HH',   '時2桁'],
-      ['H',    '時'],
-      ['MM',   '分2桁'],
-      ['M',    '分'],
-      ['SS',   '秒2桁'],
-      ['S',    '秒'],
+      ['yyyy', '年4桁'],  ['yy',   '年下2桁'],
+      ['mm',   '月(ゼロ埋め)'], ['m', '月'],
+      ['dd',   '日(ゼロ埋め)'], ['d', '日'],
+      ['dddd', '曜日(英語フル)'], ['ddd', '曜日(英語略)'],
+      ['aaaa', '曜日(日本語フル)'], ['aaa', '曜日(日本語)'],
+      ['HH',   '時(ゼロ埋め)'], ['H', '時'],
+      ['MM',   '分(ゼロ埋め)'], ['M', '分'],
+      ['SS',   '秒(ゼロ埋め)'], ['S', '秒'],
     ];
 
     function buildVarsPanel() {
@@ -684,7 +748,10 @@
       const groupsHtml = VAR_GROUPS.map(({ keyword, desc, examples }) => {
         const chipsHtml = examples.map(fmt => {
           const preview = formatDate(dm[keyword], fmt);
-          return `<span class="var-chip" onclick="insertPlaceholder('[${keyword}(${fmt})]')" title="${preview}">[${keyword}(${fmt})]<span class="var-chip-hint">${preview}</span></span>`;
+          const tag = `[${keyword}(${fmt})]`;
+          return `<span class="var-chip" onclick="insertPlaceholder('${tag.replace(/'/g, "\\'")}')" title="${tag}">
+            ${tag}<span class="var-chip-preview">${preview}</span>
+          </span>`;
         }).join('');
         return `<div class="var-group">
           <div class="var-keyword">${keyword}</div>
@@ -734,7 +801,7 @@
       const urlEl = document.getElementById('generated-url');
 
       if (!to && !cc && !bcc && !subject && !body.trim()) {
-        urlEl.textContent = 'パラメータを入力するとURLが生成されます';
+        urlEl.textContent = '入力するとリンクが自動生成されます';
         urlEl.classList.add('empty');
         return;
       }
@@ -765,13 +832,57 @@
       });
     }
 
+    function restoreFromLink() {
+      const val = document.getElementById('restore-input').value.trim();
+      if (!val) return;
+
+      let to = '', cc = '', bcc = '', subject = '', body = '';
+
+      if (val.startsWith('mailto:')) {
+        const withoutScheme = val.slice(7);
+        const qIdx = withoutScheme.indexOf('?');
+        const toRaw = qIdx >= 0 ? withoutScheme.slice(0, qIdx) : withoutScheme;
+        const queryStr = qIdx >= 0 ? withoutScheme.slice(qIdx + 1) : '';
+        to = decodeURIComponent(toRaw);
+        const p = new URLSearchParams(queryStr);
+        cc      = p.get('cc')      ?? '';
+        bcc     = p.get('bcc')     ?? '';
+        subject = p.get('subject') ?? '';
+        body    = p.get('body')    ?? '';
+      } else {
+        try {
+          const url = new URL(val);
+          const p = url.searchParams;
+          to      = p.get('to')      ?? '';
+          cc      = p.get('cc')      ?? '';
+          bcc     = p.get('bcc')     ?? '';
+          subject = p.get('subject') ?? '';
+          body    = p.get('body')    ?? '';
+        } catch (_) {
+          return;
+        }
+      }
+
+      document.getElementById('f-to').value      = to;
+      document.getElementById('f-cc').value      = cc;
+      document.getElementById('f-bcc').value     = bcc;
+      document.getElementById('f-subject').value = subject;
+      document.getElementById('f-body').value    = body;
+      document.getElementById('restore-input').value = '';
+      updateUrl();
+    }
+
+    document.getElementById('restore-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') restoreFromLink();
+    });
+
     function runBuilderMode() {
       buildVarsPanel();
       trackFocus();
       document.getElementById('mode-builder').style.display = 'block';
     }
 
-    /* ── Entry point ────────────────────────────────────── */
+    /* ── Entry point ─────────────────────────────────────────── */
 
     (function () {
       const params = new URLSearchParams(location.search);

@@ -711,17 +711,89 @@
       return new Date(t.getFullYear(), t.getMonth() + n, 1);
     }
 
+    function dateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    const _holidayCache = {};
+
+    function getJapaneseHolidays(year) {
+      if (_holidayCache[year]) return _holidayCache[year];
+      const h = new Set();
+      const add = (m, d) => h.add(`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+
+      const y = year - 1980;
+      const shunbun = Math.floor(20.8431 + 0.242194 * y - Math.floor(y / 4));
+      const shubun  = Math.floor(23.2488  + 0.242194 * y - Math.floor(y / 4));
+
+      add(1, 1);
+      add(2, 11);
+      if (year >= 2020) add(2, 23); else add(12, 23);
+      add(3, shunbun);
+      add(4, 29);
+      add(5, 3); add(5, 4); add(5, 5);
+      if (year >= 2016) add(8, 11);
+      add(9, shubun);
+      add(11, 3);
+      add(11, 23);
+
+      function nthMon(mon, nth) {
+        const first = new Date(year, mon - 1, 1).getDay();
+        return 1 + (1 - first + 7) % 7 + (nth - 1) * 7;
+      }
+      add(1,  nthMon(1,  2));
+      add(7,  nthMon(7,  3));
+      add(9,  nthMon(9,  3));
+      add(10, nthMon(10, 2));
+
+      // 振替休日: 祝日が日曜なら翌月曜（既に祝日なら更に翌日）
+      const base = new Set(h);
+      base.forEach(s => {
+        const dt = new Date(s + 'T00:00:00');
+        if (dt.getDay() === 0) {
+          const sub = new Date(dt);
+          sub.setDate(sub.getDate() + 1);
+          while (h.has(dateKey(sub))) sub.setDate(sub.getDate() + 1);
+          h.add(dateKey(sub));
+        }
+      });
+
+      // 国民の休日: 祝日と祝日に挟まれた平日
+      for (let mo = 1; mo <= 12; mo++) {
+        const days = new Date(year, mo, 0).getDate();
+        for (let dy = 2; dy < days; dy++) {
+          const dt = new Date(year, mo - 1, dy);
+          const dow = dt.getDay();
+          if (dow === 0 || dow === 6) continue;
+          const s = dateKey(dt);
+          if (h.has(s)) continue;
+          const prev = dateKey(new Date(year, mo - 1, dy - 1));
+          const next = dateKey(new Date(year, mo - 1, dy + 1));
+          if (h.has(prev) && h.has(next)) h.add(s);
+        }
+      }
+
+      _holidayCache[year] = h;
+      return h;
+    }
+
+    function isNonWorkday(d) {
+      const dow = d.getDay();
+      if (dow === 0 || dow === 6) return true;
+      return getJapaneseHolidays(d.getFullYear()).has(dateKey(d));
+    }
+
     function getWorkday(today, offset) {
       const d = new Date(today);
       if (offset === 0) {
-        while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+        while (isNonWorkday(d)) d.setDate(d.getDate() - 1);
         return d;
       }
       const step = offset > 0 ? 1 : -1;
       let remaining = Math.abs(offset);
       while (remaining > 0) {
         d.setDate(d.getDate() + step);
-        if (d.getDay() !== 0 && d.getDay() !== 6) remaining--;
+        if (!isNonWorkday(d)) remaining--;
       }
       return d;
     }
@@ -908,7 +980,7 @@
       ];
       const workdayHtml = `<div class="var-group">
         <div class="var-keyword">workday</div>
-        <div class="var-desc">営業日（土日スキップ）</div>
+        <div class="var-desc">営業日（土日・祝日スキップ）</div>
         <div class="var-chips">${workdayExamples.map(({ offset, fmt }) => {
           const tag = `[workday(${sign(offset)}, ${fmt})]`;
           return makeChip(tag, formatDate(getWorkday(today, offset), fmt));

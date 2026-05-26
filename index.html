@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mailgate</title>
+  <title>mailgate for Outlook</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNjM2NmYxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjM2I4MmY2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjUiIHk9IjEwIiB3aWR0aD0iMjIiIGhlaWdodD0iMTMiIHJ4PSIyIiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuOTUiLz48cG9seWxpbmUgcG9pbnRzPSI1LDEwIDE2LDE5LjUgMjcsMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utb3BhY2l0eT0iMC45NSIvPjwvc3ZnPgo=">
   <style>
     * {
@@ -585,7 +585,7 @@
         <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
         <div class="mailto-link-section">
           <p>自動で開かない場合：</p>
-          <a id="mailto-btn" href="#" class="btn-primary">メールを開く</a>
+          <a id="mailto-btn" href="#" class="btn-primary">Outlook で開く</a>
         </div>
         <div class="debug-section">
           <h3>日付プレースホルダーの置換結果</h3>
@@ -896,13 +896,13 @@
       const body    = applyAll(rawParams.body);
 
       const queryParts = [];
+      if (to)      queryParts.push('to='      + encodeSpecialChars(to));
       if (cc)      queryParts.push('cc='      + encodeSpecialChars(cc));
       if (bcc)     queryParts.push('bcc='     + encodeSpecialChars(bcc));
       if (subject) queryParts.push('subject=' + encodeSpecialChars(subject));
       if (body)    queryParts.push('body='    + encodeSpecialChars(body));
 
-      const mailtoUrl = 'mailto:' + encodeSpecialChars(to)
-        + (queryParts.length ? '?' + queryParts.join('&') : '');
+      const mailtoUrl = 'ms-outlook://compose?' + queryParts.join('&');
 
       document.getElementById('mailto-btn').href = mailtoUrl;
       document.getElementById('mode-redirect').style.display = 'flex';
@@ -1109,13 +1109,18 @@
 
       let to = '', cc = '', bcc = '', subject = '', body = '';
 
-      if (val.startsWith('mailto:')) {
+      if (val.startsWith('ms-outlook://compose?')) {
+        const p = new URLSearchParams(val.slice('ms-outlook://compose?'.length));
+        to      = p.get('to')      ?? '';
+        cc      = p.get('cc')      ?? '';
+        bcc     = p.get('bcc')     ?? '';
+        subject = p.get('subject') ?? '';
+        body    = p.get('body')    ?? '';
+      } else if (val.startsWith('mailto:')) {
         const withoutScheme = val.slice(7);
         const qIdx = withoutScheme.indexOf('?');
-        const toRaw = qIdx >= 0 ? withoutScheme.slice(0, qIdx) : withoutScheme;
-        const queryStr = qIdx >= 0 ? withoutScheme.slice(qIdx + 1) : '';
-        to = decodeURIComponent(toRaw);
-        const p = new URLSearchParams(queryStr);
+        to = decodeURIComponent(qIdx >= 0 ? withoutScheme.slice(0, qIdx) : withoutScheme);
+        const p = new URLSearchParams(qIdx >= 0 ? withoutScheme.slice(qIdx + 1) : '');
         cc      = p.get('cc')      ?? '';
         bcc     = p.get('bcc')     ?? '';
         subject = p.get('subject') ?? '';

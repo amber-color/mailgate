@@ -810,11 +810,11 @@
     }
 
     function encodeSpecialChars(str) {
-      return str.replace(/[%&=#?]|\r\n|\r|\n/g, c => encodeURIComponent(c));
+      return str.replace(/[%&=#?,]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
 
     function encodeQueryValue(str) {
-      return str.replace(/[%&=#?+]|\r\n|\r|\n/g, c => encodeURIComponent(c));
+      return str.replace(/[%&=#?+,]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
 
     /* ── Redirect mode ───────────────────────────────────────── */

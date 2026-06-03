@@ -322,6 +322,17 @@
       padding: 12px 20px;
     }
 
+    .url-counter {
+      font-size: 11px;
+      color: #b0b8d4;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .url-counter.warn { color: #d4a800; }
+    .url-counter.over { color: #e05252; font-weight: 600; }
+
     .url-text {
       flex: 1;
       font-size: 12px;
@@ -637,6 +648,7 @@
             </div>
             <div class="url-bar">
               <span id="generated-url" class="url-text empty">入力するとリンクが自動生成されます</span>
+              <span id="url-counter" class="url-counter"></span>
               <button id="copy-btn" class="copy-btn" onclick="copyUrl()">コピー</button>
             </div>
           </div>
@@ -1071,9 +1083,13 @@
 
       const urlEl = document.getElementById('generated-url');
 
+      const counterEl = document.getElementById('url-counter');
+
       if (!to && !cc && !bcc && !subject && !body.trim()) {
         urlEl.textContent = '入力するとリンクが自動生成されます';
         urlEl.classList.add('empty');
+        counterEl.textContent = '';
+        counterEl.className = 'url-counter';
         return;
       }
 
@@ -1088,8 +1104,13 @@
         if (key) parts.push(encodeQueryValue(key) + '=' + encodeQueryValue(val));
       });
 
-      urlEl.textContent = base + '?' + parts.join('&');
+      const fullUrl = base + '?' + parts.join('&');
+      urlEl.textContent = fullUrl;
       urlEl.classList.remove('empty');
+
+      const len = fullUrl.length;
+      counterEl.textContent = len.toLocaleString() + ' 文字';
+      counterEl.className = 'url-counter' + (len >= 2000 ? ' over' : len >= 1500 ? ' warn' : '');
     }
 
     function copyUrl() {

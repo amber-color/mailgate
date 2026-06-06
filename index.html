@@ -824,6 +824,28 @@
           (_, n, fmt) => formatDate(getWorkday(today, parseInt(n)), fmt));
     }
 
+    async function compressToURL(str) {
+      const bytes = new TextEncoder().encode(str);
+      const cs = new CompressionStream('deflate-raw');
+      const writer = cs.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const buf = await new Response(cs.readable).arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    async function decompressFromURL(b64url) {
+      const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const ds = new DecompressionStream('deflate-raw');
+      const writer = ds.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const buf = await new Response(ds.readable).arrayBuffer();
+      return new TextDecoder().decode(buf);
+    }
+
     function encodeSpecialChars(str) {
       return str.replace(/[%&=#? ]|\r\n|\r|\n/g, c => encodeURIComponent(c));
     }
@@ -1074,15 +1096,14 @@
       updateUrl();
     }
 
-    function updateUrl() {
+    async function updateUrl() {
       const to      = document.getElementById('f-to').value.trim();
       const cc      = document.getElementById('f-cc').value.trim();
       const bcc     = document.getElementById('f-bcc').value.trim();
       const subject = document.getElementById('f-subject').value.trim();
       const body    = document.getElementById('f-body').value;
 
-      const urlEl = document.getElementById('generated-url');
-
+      const urlEl     = document.getElementById('generated-url');
       const counterEl = document.getElementById('url-counter');
 
       if (!to && !cc && !bcc && !subject && !body.trim()) {
@@ -1104,13 +1125,16 @@
         if (key) parts.push(encodeQueryValue(key) + '=' + encodeQueryValue(val));
       });
 
-      const fullUrl = base + '?' + parts.join('&');
-      urlEl.textContent = fullUrl;
+      const z = await compressToURL(parts.join('&'));
+      const compressedUrl = base + '?z=' + z;
+
+      urlEl.textContent = compressedUrl;
       urlEl.classList.remove('empty');
 
-      const len = fullUrl.length;
-      counterEl.textContent = len.toLocaleString() + ' 文字';
-      counterEl.className = 'url-counter' + (len >= 2000 ? ' over' : len >= 1500 ? ' warn' : '');
+      const cLen = compressedUrl.length;
+      const rLen = (base + '?' + parts.join('&')).length;
+      counterEl.textContent = cLen.toLocaleString() + ' 文字（元 ' + rLen.toLocaleString() + '）';
+      counterEl.className = 'url-counter' + (cLen >= 2000 ? ' over' : cLen >= 1500 ? ' warn' : '');
     }
 
     function copyUrl() {
@@ -1127,11 +1151,37 @@
       });
     }
 
-    function restoreFromLink() {
+    async function restoreFromLink() {
       const val = document.getElementById('restore-input').value.trim();
       if (!val) return;
 
       let to = '', cc = '', bcc = '', subject = '', body = '';
+
+      // 圧縮URL（?z=）
+      try {
+        const url = new URL(val);
+        if (url.searchParams.has('z')) {
+          const decompressed = await decompressFromURL(url.searchParams.get('z'));
+          const p = new URLSearchParams(decompressed);
+          to      = p.get('to')      ?? '';
+          cc      = p.get('cc')      ?? '';
+          bcc     = p.get('bcc')     ?? '';
+          subject = p.get('subject') ?? '';
+          body    = p.get('body')    ?? '';
+          const reserved = new Set(['to','cc','bcc','subject','body']);
+          customParams = [];
+          p.forEach((v, k) => { if (!reserved.has(k)) customParams.push({ key: k, val: v }); });
+          renderCustomParams();
+          document.getElementById('f-to').value      = to;
+          document.getElementById('f-cc').value      = cc;
+          document.getElementById('f-bcc').value     = bcc;
+          document.getElementById('f-subject').value = subject;
+          document.getElementById('f-body').value    = body;
+          document.getElementById('restore-input').value = '';
+          updateUrl();
+          return;
+        }
+      } catch (_) {}
 
       if (val.startsWith('mailto:')) {
         const withoutScheme = val.slice(7);
@@ -1183,8 +1233,19 @@
 
     /* ── Entry point ─────────────────────────────────────────── */
 
-    (function () {
+    (async function () {
       const params = new URLSearchParams(location.search);
+
+      if (params.has('z')) {
+        try {
+          const decompressed = await decompressFromURL(params.get('z'));
+          runRedirectMode(new URLSearchParams(decompressed));
+        } catch (_) {
+          runBuilderMode();
+        }
+        return;
+      }
+
       const hasParams = params.has('to') || params.has('cc') || params.has('bcc')
         || params.has('subject') || params.has('body');
 

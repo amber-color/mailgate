@@ -824,27 +824,8 @@
           (_, n, fmt) => formatDate(getWorkday(today, parseInt(n)), fmt));
     }
 
-    async function compressToURL(str) {
-      const bytes = new TextEncoder().encode(str);
-      const cs = new CompressionStream('deflate-raw');
-      const writer = cs.writable.getWriter();
-      writer.write(bytes);
-      writer.close();
-      const buf = await new Response(cs.readable).arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    async function decompressFromURL(b64url) {
-      const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
-      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-      const ds = new DecompressionStream('deflate-raw');
-      const writer = ds.writable.getWriter();
-      writer.write(bytes);
-      writer.close();
-      const buf = await new Response(ds.readable).arrayBuffer();
-      return new TextDecoder().decode(buf);
-    }
+    // LZString (MIT) https://github.com/pieroxy/lz-string
+    var LZString=function(){function o(o,r){if(!t[o]){t[o]={};for(var n=0;n<o.length;n++)t[o][o.charAt(n)]=n}return t[o][r]}var r=String.fromCharCode,e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",t={},i={compressToEncodedURIComponent:function(o){return null==o?"":i._compress(o,6,function(o){return e.charAt(o)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(n){return o(e,r)}))},_compress:function(o,r,n){if(null==o)return"";var e,t,i,s={},p={},u="",c="",a="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<o.length;i+=1){u=o.charAt(i);Object.prototype.hasOwnProperty.call(s,u)||(s[u]=f++,p[u]=!0);c=a+u;if(Object.prototype.hasOwnProperty.call(s,c))a=c;else{if(Object.prototype.hasOwnProperty.call(p,a)){if(a.charCodeAt(0)<256){for(e=0;e<h;e++)m=m<<1,v==r-1?(v=0,d.push(n(m)),m=0):v++;for(t=a.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=a.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}l--,0==l&&(l=Math.pow(2,h),h++);delete p[a]}else for(t=s[a],e=0;e<h;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;l--,0==l&&(l=Math.pow(2,h),h++);s[c]=f++,a=String(u)}}if(""!==a){if(Object.prototype.hasOwnProperty.call(p,a)){if(a.charCodeAt(0)<256){for(e=0;e<h;e++)m=m<<1,v==r-1?(v=0,d.push(n(m)),m=0):v++;for(t=a.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=a.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}l--,0==l&&(l=Math.pow(2,h),h++);delete p[a]}else for(t=s[a],e=0;e<h;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;l--,0==l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==r-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m=m<<1,v==r-1){d.push(n(m));break}v++}return d.join("")},_decompress:function(o,e,t){var i,n,r,s,p,u,c,a=[],l=4,f=4,h=3,d="",v=[],m={val:t(0),position:e,index:1};for(i=0;i<3;i+=1)a[i]=i;for(r=0,p=Math.pow(2,2),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;switch(n=r){case 0:for(r=0,p=Math.pow(2,8),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;c=String.fromCharCode(r);break;case 1:for(r=0,p=Math.pow(2,16),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;c=String.fromCharCode(r);break;case 2:return""}for(a[3]=c,d=c,v.push(c);;){if(m.index>o)return"";for(r=0,p=Math.pow(2,h),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;switch(c=r){case 0:for(r=0,p=Math.pow(2,8),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;a[f++]=String.fromCharCode(r),c=f-1,l--;break;case 1:for(r=0,p=Math.pow(2,16),u=1;u!=p;)s=m.val&m.position,m.position>>=1,0==m.position&&(m.position=e,m.val=t(m.index++)),r|=(s>0?1:0)*u,u<<=1;a[f++]=String.fromCharCode(r),c=f-1,l--;break;case 2:return d}if(0==l&&(l=Math.pow(2,h),h++),a[c])i=a[c];else{if(c!==f)return null;i=d+d.charAt(0)}d=i,v.push(i),a[f++]=d+i.charAt(0),l--,0==l&&(l=Math.pow(2,h),h++),d=i}}}}();
 
     function encodeSpecialChars(str) {
       return str.replace(/[%&=#? ]|\r\n|\r|\n/g, c => encodeURIComponent(c));
@@ -1096,7 +1077,7 @@
       updateUrl();
     }
 
-    async function updateUrl() {
+    function updateUrl() {
       const to      = document.getElementById('f-to').value.trim();
       const cc      = document.getElementById('f-cc').value.trim();
       const bcc     = document.getElementById('f-bcc').value.trim();
@@ -1125,7 +1106,7 @@
         if (key) parts.push(encodeQueryValue(key) + '=' + encodeQueryValue(val));
       });
 
-      const z = await compressToURL(parts.join('&'));
+      const z = LZString.compressToEncodedURIComponent(parts.join('&'));
       const compressedUrl = base + '?z=' + z;
 
       urlEl.textContent = compressedUrl;
@@ -1151,7 +1132,7 @@
       });
     }
 
-    async function restoreFromLink() {
+    function restoreFromLink() {
       const val = document.getElementById('restore-input').value.trim();
       if (!val) return;
 
@@ -1161,7 +1142,7 @@
       try {
         const url = new URL(val);
         if (url.searchParams.has('z')) {
-          const decompressed = await decompressFromURL(url.searchParams.get('z'));
+          const decompressed = LZString.decompressFromEncodedURIComponent(url.searchParams.get('z'));
           const p = new URLSearchParams(decompressed);
           to      = p.get('to')      ?? '';
           cc      = p.get('cc')      ?? '';
@@ -1233,12 +1214,12 @@
 
     /* ── Entry point ─────────────────────────────────────────── */
 
-    (async function () {
+    (function () {
       const params = new URLSearchParams(location.search);
 
       if (params.has('z')) {
         try {
-          const decompressed = await decompressFromURL(params.get('z'));
+          const decompressed = LZString.decompressFromEncodedURIComponent(params.get('z'));
           runRedirectMode(new URLSearchParams(decompressed));
         } catch (_) {
           runBuilderMode();

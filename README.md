@@ -98,6 +98,12 @@ https://mailgate.pages.dev/?to=boss@example.com&subject=[date(0, mm/dd)] [param:
 ```
 [→ 試す](https://mailgate.pages.dev/?to=boss@example.com&subject=%5Bdate(0,%20mm/dd)%5D%20%5Bparam:project%5D打ち合わせ&body=%5Bparam:name%5D%0Aいつもお世話になっております。&name=田中様&project=ECサイト)
 
+### 値が空のカスタム変数
+
+宛先・件名・本文などで使われている `[param:xxx]` の値が空（`&name=`）または未指定の場合、メーラーを開く前にブラウザ上に入力フォームが表示されます。すべて入力すると「メールを開く」ボタンが押せるようになり、押すと入力した値を反映してメーラーが起動し、タブが閉じます（Enter で次の未入力欄へ移動、すべて入力済みならメールを開きます）。
+
+使われている変数の値がすべて埋まっていれば、従来どおり即座にメーラーが開きます。
+
 URLジェネレーター（パラメータなしでアクセス）の変数パネルからカスタム変数を追加すると、URLに自動で付加されます。
 
 ---

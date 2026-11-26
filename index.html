@@ -99,6 +99,52 @@
 
     .btn-primary:hover { background: #5470b8; }
 
+    .btn-primary:disabled,
+    .btn-primary:disabled:hover { background: #c8d0e4; cursor: not-allowed; }
+
+    .fill-section { margin-bottom: 20px; }
+
+    .fill-list {
+      border: 1px solid #eaecf4;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .fill-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #eaecf4;
+    }
+
+    .fill-row:last-child { border-bottom: none; }
+
+    .fill-row label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #4c5f8e;
+      flex-shrink: 0;
+      max-width: 40%;
+      overflow-wrap: anywhere;
+    }
+
+    .fill-row input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #dde2f0;
+      border-radius: 6px;
+      outline: none;
+      padding: 6px 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #2d3748;
+      background: #fff;
+    }
+
+    .fill-row input:focus { border-color: #6b84cc; }
+
     .debug-section {
       border-top: 1px solid #eaecf4;
       padding-top: 16px;
@@ -592,12 +638,17 @@
   <div id="mode-redirect" style="display:none">
     <div class="redirect-window">
       <div class="redirect-header">
-        <div class="spinner"></div>
-        <span>メールを開いています…</span>
+        <div class="spinner" id="redirect-spinner"></div>
+        <span id="redirect-title">メールを開いています…</span>
       </div>
       <div class="redirect-body">
-        <p class="status-text">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
-        <div class="mailto-link-section">
+        <div id="fill-section" class="fill-section" style="display:none">
+          <p class="status-text">未入力のカスタム変数があります。すべて入力すると「メールを開く」ボタンが押せるようになります。</p>
+          <div id="fill-list" class="fill-list"></div>
+          <button id="fill-open-btn" class="btn-primary" type="button" disabled>メールを開く</button>
+        </div>
+        <p class="status-text" id="redirect-status">メールクライアントを起動しています。自動的に開かない場合は下のボタンをクリックしてください。</p>
+        <div class="mailto-link-section" id="mailto-link-section">
           <p>自動で開かない場合：</p>
           <a id="mailto-btn" href="#" class="btn-primary">メールを開く</a>
         </div>
@@ -879,7 +930,8 @@
       }).join('');
 
       const paramRows = paramFound.map(({ placeholder, key }) => {
-        const resolved = urlParams.get(key) ?? '(未設定)';
+        const val = urlParams.get(key);
+        const resolved = val ? escHtml(val) : (val === '' ? '(未入力)' : '(未設定)');
         const esc = placeholder.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return `<tr><td>${esc}</td><td>→</td><td>${resolved}</td></tr>`;
       }).join('');
@@ -906,6 +958,23 @@
 
       buildDebugInfo(rawParams, params);
 
+      // メール項目で使われている [param:xxx] のうち、値が空または未指定のもの（出現順・重複なし）
+      const allText = Object.values(rawParams).join('\n');
+      const missingKeys = [...new Set(
+        [...allText.matchAll(/\[param:([^\]]+)\]/g)].map(m => m[1])
+      )].filter(key => !params.get(key));
+
+      document.getElementById('mode-redirect').style.display = 'flex';
+
+      if (missingKeys.length === 0) {
+        openMail(buildMailtoUrl(rawParams, params));
+        return;
+      }
+
+      showFillForm(rawParams, params, missingKeys);
+    }
+
+    function buildMailtoUrl(rawParams, params) {
       const applyAll = str => replaceParamPlaceholders(replaceDatePlaceholders(str), params);
       const to      = applyAll(rawParams.to);
       const cc      = applyAll(rawParams.cc);
@@ -919,14 +988,69 @@
       if (subject) queryParts.push('subject=' + encodeSpecialChars(subject));
       if (body)    queryParts.push('body='    + encodeSpecialChars(body));
 
-      const mailtoUrl = 'mailto:' + encodeSpecialChars(to)
+      return 'mailto:' + encodeSpecialChars(to)
         + (queryParts.length ? '?' + queryParts.join('&') : '');
+    }
 
+    function openMail(mailtoUrl) {
+      document.getElementById('fill-section').style.display = 'none';
+      document.getElementById('redirect-spinner').style.display = '';
+      document.getElementById('redirect-title').textContent = 'メールを開いています…';
+      document.getElementById('redirect-status').style.display = '';
+      document.getElementById('mailto-link-section').style.display = '';
       document.getElementById('mailto-btn').href = mailtoUrl;
-      document.getElementById('mode-redirect').style.display = 'flex';
 
       window.location.href = mailtoUrl;
       setTimeout(() => window.close(), 500);
+    }
+
+    function showFillForm(rawParams, params, missingKeys) {
+      document.getElementById('redirect-spinner').style.display = 'none';
+      document.getElementById('redirect-title').textContent = 'カスタム変数を入力してください';
+      document.getElementById('redirect-status').style.display = 'none';
+      document.getElementById('mailto-link-section').style.display = 'none';
+      document.getElementById('fill-section').style.display = '';
+
+      const list = document.getElementById('fill-list');
+      const btn  = document.getElementById('fill-open-btn');
+
+      list.innerHTML = missingKeys.map((key, i) => `
+        <div class="fill-row">
+          <label for="fill-${i}">[param:${escHtml(key)}]</label>
+          <input id="fill-${i}" type="text" autocomplete="off" spellcheck="false">
+        </div>`).join('');
+
+      const inputs = missingKeys.map((_, i) => document.getElementById('fill-' + i));
+
+      // URLの値に入力値を上書きしたパラメータ
+      const currentParams = () => {
+        const merged = new URLSearchParams(params);
+        missingKeys.forEach((key, i) => merged.set(key, inputs[i].value));
+        return merged;
+      };
+      const allFilled = () => inputs.every(el => el.value.trim() !== '');
+
+      const submit = () => {
+        if (!allFilled()) return;
+        openMail(buildMailtoUrl(rawParams, currentParams()));
+      };
+
+      inputs.forEach((el, i) => {
+        el.addEventListener('input', () => {
+          btn.disabled = !allFilled();
+          buildDebugInfo(rawParams, currentParams());
+        });
+        el.addEventListener('keydown', e => {
+          if (e.key !== 'Enter' || e.isComposing) return;
+          e.preventDefault();
+          const next = inputs.slice(i + 1).concat(inputs.slice(0, i)).find(x => x.value.trim() === '');
+          if (next) next.focus();
+          else submit();
+        });
+      });
+
+      btn.addEventListener('click', submit);
+      inputs[0].focus();
     }
 
     /* ── Builder mode ────────────────────────────────────────── */

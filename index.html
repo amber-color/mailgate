@@ -105,6 +105,8 @@
     .fill-section { margin-bottom: 20px; }
 
     .fill-list {
+      display: grid;
+      grid-template-columns: fit-content(40%) 1fr;
       border: 1px solid #eaecf4;
       border-radius: 8px;
       margin-bottom: 16px;
@@ -112,9 +114,11 @@
     }
 
     .fill-row {
-      display: flex;
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
       align-items: center;
-      gap: 12px;
+      column-gap: 12px;
       padding: 10px 14px;
       border-bottom: 1px solid #eaecf4;
     }
@@ -125,13 +129,11 @@
       font-size: 13px;
       font-weight: 700;
       color: #4c5f8e;
-      flex-shrink: 0;
-      max-width: 40%;
       overflow-wrap: anywhere;
     }
 
     .fill-row input {
-      flex: 1;
+      width: 100%;
       min-width: 0;
       border: 1px solid #dde2f0;
       border-radius: 6px;
@@ -1010,13 +1012,14 @@
       document.getElementById('redirect-status').style.display = 'none';
       document.getElementById('mailto-link-section').style.display = 'none';
       document.getElementById('fill-section').style.display = '';
+      document.querySelector('.debug-section').style.display = 'none';
 
       const list = document.getElementById('fill-list');
       const btn  = document.getElementById('fill-open-btn');
 
       list.innerHTML = missingKeys.map((key, i) => `
         <div class="fill-row">
-          <label for="fill-${i}">[param:${escHtml(key)}]</label>
+          <label for="fill-${i}">${escHtml(key)}</label>
           <input id="fill-${i}" type="text" autocomplete="off" spellcheck="false">
         </div>`).join('');
 
@@ -1036,10 +1039,7 @@
       };
 
       inputs.forEach((el, i) => {
-        el.addEventListener('input', () => {
-          btn.disabled = !allFilled();
-          buildDebugInfo(rawParams, currentParams());
-        });
+        el.addEventListener('input', () => { btn.disabled = !allFilled(); });
         el.addEventListener('keydown', e => {
           if (e.key !== 'Enter' || e.isComposing) return;
           e.preventDefault();
